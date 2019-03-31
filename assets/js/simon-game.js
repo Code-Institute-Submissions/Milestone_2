@@ -14,9 +14,11 @@ var gameState = {
 
 var mult = 1;
 var simonSize = 100 * mult;
-var pillarSizeX = 200 * mult;
-var pillarSizeY = window.innerHeight/3;
-var pillarNum = Math.ceil(window.innerWidth/(pillarSizeX + (pillarSizeX/4)));
+var pillarSizeW = 200 * mult;
+var pillarSizeH = window.innerHeight/3;
+var pillarGap = 0.5; // This is a function of pillar width where 1 = pillarSizeW
+var pillarGapW = pillarGap*pillarSizeW;
+var pillarNum = Math.ceil(window.innerWidth/(pillarSizeW + (pillarSizeW/4)));
 
 // startFlag is used to trigger the game on and off
 var startFlag = false;
@@ -38,7 +40,7 @@ function keyDownHandler(e) {
   }
 
   // Checks if the move is a valid Simon move and sets the flag true
-  for (var i = 0; i < gameState.validMoves.length; i++) {
+  for (let i = 0; i < gameState.validMoves.length; i++) {
     if (gameState.validMoves[i] == e.code) {
       moveFlag = true;
     }

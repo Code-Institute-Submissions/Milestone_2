@@ -29,7 +29,7 @@ function gameStart(num){
   gameState.gameMoves = [];
 
   // Adding number of moves to game array
-  for (var i = 0; i < num; i++) {
+  for (let i = 0; i < num; i++) {
     gameState.gameMoves.push(nextmoveRandom());
   }
 
