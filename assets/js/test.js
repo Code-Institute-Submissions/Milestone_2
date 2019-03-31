@@ -2,12 +2,12 @@
 
 // Initializing the game Canvas
 var canvas = document.getElementById("maincanvas");
-var ctx = canvas.getContext("2d");
+var ctx = canvas.getContext("2d");file://
 
 // gameState object keeps track of the user moves and game moves
 var gameState = {
-  userMoves:new Array(), 
-  gameMoves:new Array(), 
+  userMoves:[], 
+  gameMoves:[], 
   validMoves:["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"]};
 
 // startFlag is used to trigger the game on and off
@@ -37,11 +37,11 @@ function nextmoveRandom() {
 
 // Function used to start game with certain number of moves
 function gameStart(num, game){
-  console.log("New Game")
+  console.log("New Game");
 
   // Clearing gameState arrays
-  game.userMoves = new Array();
-  game.gameMoves = new Array();
+  game.userMoves = [];
+  game.gameMoves = [];
 
   // Adding number of moves to game array
   for (var i = 0; i < num; i++) {
@@ -70,7 +70,7 @@ function checkGame(game){
   
   // If the check is passed and the length of the two arrays are equal then userMoves is reset and one extra move it added to gameMoves
   if (um.length == gm.length) {
-    game.userMoves = new Array();
+    game.userMoves = [];
     game.gameMoves.push(nextmoveRandom());
     console.log(game.gameMoves);
   }
@@ -80,12 +80,12 @@ function checkGame(game){
 
 // Function activated when a keyboard button is pressed
 function keyDownHandler(e) {
-  console.log(e.code)
+  console.log(e.code);
   var moveFlag = false; 
 
   // If the Space button is pressed the game is restarted
   if (e.code == 'Space'){
-    console.log("Game started")
+    console.log("Game started");
     gameState = gameStart(3, gameState);
     startFlag = true;
   }
@@ -98,7 +98,7 @@ function keyDownHandler(e) {
   }
 
   // If the games has started and the move is valid then the key is added to the gameState and the gameState checked
-  if (moveFlag & startFlag){
+  if (moveFlag && startFlag){
     gameState.userMoves.push(e.code);
     gameState = checkGame(gameState);
   }
@@ -109,10 +109,10 @@ function keyDownHandler(e) {
 
 // Listening for button press
 document.addEventListener("keydown", keyDownHandler);
-console.log("Press space to start")
+console.log("Press space to start");
 
 // ctx.beginPath();
-// ctx.rect(20, 40, 50, 50);
+// ctx.rect(20, 40, 100, 100);
 // ctx.fillStyle = "#FF0000";
 // ctx.fill();
 // ctx.closePath();
