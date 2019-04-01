@@ -32,7 +32,7 @@ function draw(haz) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   if (pillarArray[haz] > cent){
-    off = pillarArray[haz] - cent
+    off = pillarArray[haz] - cent;
     console.log(off);
   }
 
@@ -89,6 +89,7 @@ function drawRoom(off){
     // Right Wall
     rWallX = pillarStart+((pillarSizeW+pillarGapW)*haz)-pillarGapW-5-off;
     drawWall(rWallX,0,1000, window.innerHeight);
+    drawButton((pillarArray[pillarArray.length-1]+(pillarSizeW/2)), pillarSizeH + roomSize);
   }
   
   // Otherwise they are drawn from the far left side
@@ -106,10 +107,11 @@ function drawRoom(off){
         drawPillar(pillarArray[i], pillarSizeH + roomSize);
       }
       // Left Wall
-      drawWall(0-off,0,100, window.innerHeight);
+      drawWall(0-off,0,105, window.innerHeight);
       // Right Wall
-      rWallX = ((pillarSizeW+pillarGapW)*haz)-off;
+      rWallX = ((pillarSizeW+pillarGapW)*haz)-5-off;
       drawWall(rWallX,0,1000, window.innerHeight);
+      drawButton((pillarArray[pillarArray.length-1]+(pillarSizeW/2)), pillarSizeH + roomSize);
     }
 }
 
@@ -151,8 +153,8 @@ function drawWall(x, y, w, h){
 function drawButton(x, y){
 
   // Centering button
-  x = xn - (simonSize*1.2)/2;
-  y = yn - simonSize/2;
+  xn = x - (simonSize*1.2)/2;
+  yn = y - simonSize/4;
 
   ctx.beginPath();
   ctx.rect(xn, yn, simonSize*1.2, simonSize/4);
