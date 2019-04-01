@@ -9,11 +9,14 @@ function nextmoveRandom() {
   var num = parseInt((Math.random() * 4));
   var move;
   if (num == 0) {
-    move = 'ArrowUp';
+    move = 'ArrowRight';
+    // move = 'ArrowUp';
   } else if (num == 1) {
-    move = 'ArrowDown';
+    move = 'ArrowRight';
+    // move = 'ArrowDown';
   } else if (num == 2) {
-    move = 'ArrowLeft';
+    move = 'ArrowRight';
+    // move = 'ArrowLeft';
   } else {
     move = 'ArrowRight';
   }
@@ -30,8 +33,10 @@ function gameStart(num){
 
   // Adding number of moves to game array
   for (let i = 0; i < num; i++) {
+    gameState.gameMoves.push('ArrowRight');
     gameState.gameMoves.push(nextmoveRandom());
   }
+  gameState.gameMoves.push('ArrowRight');
 
   // Print game moves to console
   console.log(gameState.gameMoves);
@@ -56,6 +61,7 @@ function checkGame(){
   if (um.length == gm.length) {
     gameState.userMoves = [];
     gameState.gameMoves.push(nextmoveRandom());
+    gameState.gameMoves.push('ArrowRight');
     console.log(gameState.gameMoves);
   }
 
