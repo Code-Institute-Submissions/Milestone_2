@@ -1,6 +1,9 @@
 // Function used to start listening for screen resizes and draws the first canvas at the current screensize
 function initialize() {
 
+  // Declaring the variables before they are set in resize canvas as most depend on the size of the canvas
+  var mult, simonSize, roomSize, pillarSizeW, pillarSizeH, pillarGap, pillarGapW, pillarNum, pillarArray, cent
+
   window.addEventListener('resize', resizeCanvas, false);
   // Used to initialize the canvas on first loading the page
   resizeCanvas();
@@ -13,6 +16,15 @@ function initialize() {
 function resizeCanvas() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
+
+  mult = 1;
+  simonSize = 100 * mult;
+  roomSize = simonSize * 4; // This is a function of Simon size where 1 = simonSize
+  pillarSizeW = 200 * mult;
+  pillarSizeH = 0; // Value depends on the canvas size which is calculated in draw function in simon-graphics
+  pillarGap = 0.5; // This is a function of pillar width where 1 = pillarSizeW
+  pillarGapW = pillarGap*pillarSizeW;
+  pillarArray = [];
 
   // Redefining canvas dependant variables
   pillarSizeH = (window.innerHeight-roomSize)/2;

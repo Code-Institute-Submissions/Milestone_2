@@ -3,8 +3,6 @@
 // Initializing the game Canvas
 var canvas = document.getElementById("maincanvas");
 var ctx = canvas.getContext("2d");
-var cwidth;
-var cheight;
 
 // gameState object keeps track of the user moves and game moves
 var gameState = {
@@ -12,16 +10,7 @@ var gameState = {
   gameMoves:[], 
   validMoves:["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"]};
 
-var mult = 1;
-var simonSize = 100 * mult;
-var roomSize = simonSize * 4; // This is a function of Simon size where 1 = simonSize
-var pillarSizeW = 200 * mult;
-var pillarSizeH = 0; // Value depends on the canvas size which is calculated in draw function in simon-graphics
-var pillarGap = 0.5; // This is a function of pillar width where 1 = pillarSizeW
-var pillarGapW = pillarGap*pillarSizeW;
-var pillarNum = 0; // Value depends on the canvas size which is calculated in draw function in simon-graphics
-var pillarArray = [];
-var cent = 0; // Value depends on the canvas size which is calculated in draw function in simon-graphics
+
 // startFlag is used to trigger the game on and off
 var startFlag = false;
 
