@@ -1,7 +1,7 @@
 // Function used to start listening for screen resizes and draws the first canvas at the current screensize
 function initialize() {
 
-  // Declaring the variables before they are set in resize canvas as most depend on the size of the canvas
+  // Declaring the variables before they are set in resizeCanvas as some depend on the size of the canvas
   var mult, simonSize, roomSize, pillarSizeW, pillarSizeH, pillarGap, pillarGapW, pillarNum, pillarArray, cent
 
   window.addEventListener('resize', resizeCanvas, false);
@@ -45,7 +45,7 @@ function draw(haz) {
 
   if (pillarArray[haz] > cent){
     off = pillarArray[haz] - cent;
-    console.log(off);
+    console.log(pillarArray[haz], cent, off);
   }
 
   drawRoom(off);
