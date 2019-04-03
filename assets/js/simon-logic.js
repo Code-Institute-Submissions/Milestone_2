@@ -1,3 +1,9 @@
+// gameState object keeps track of the user moves and game moves
+var gameState = {
+  userMoves:[], 
+  gameMoves:[], 
+  validMoves:["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"]};
+
 // Function returns a random move
 // It generates a random number between 0 and 3 and returns a move based on that number
 // Played a ~12 round game and only got up and downs... I think this should be psudorandom
@@ -38,6 +44,9 @@ function gameStart(num){
   }
   gameState.gameMoves.push('ArrowRight');
 
+  // Generate a room for the start of the game
+  generateRoom(num+2);
+
   // Print game moves to console
   console.log(gameState.gameMoves);
 
@@ -62,6 +71,7 @@ function checkGame(){
     gameState.userMoves = [];
     gameState.gameMoves.push(nextmoveRandom());
     gameState.gameMoves.push('ArrowRight');
+    generateRoom(((gameState.gameMoves.length-1)/2) + 2); //+2 for start and end platforms
     console.log(gameState.gameMoves);
   }
 

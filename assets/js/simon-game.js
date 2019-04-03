@@ -4,12 +4,6 @@
 var canvas = document.getElementById("maincanvas");
 var stage = new createjs.Stage(canvas);
 
-// gameState object keeps track of the user moves and game moves
-var gameState = {
-  userMoves:[], 
-  gameMoves:[], 
-  validMoves:["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"]};
-
 
 // startFlag is used to trigger the game on and off
 var startFlag = false;
