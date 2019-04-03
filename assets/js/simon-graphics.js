@@ -41,7 +41,7 @@ function draw(haz) {
   var off = 0;
 
   // Start by clearing the canvas
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  stage.removeAllChildren();
 
   if (pillarArray[haz] > cent){
     off = pillarArray[haz] - cent;
@@ -50,13 +50,11 @@ function draw(haz) {
 
   drawRoom(off);
 
-  // drawButton(canvas.width/2, (canvas.height/2)+simonSize+10);
-  drawSimon(pillarArray[haz]+pillarSizeW/2, pillarSizeH + roomSize);
+  var simonX = pillarArray[haz]+pillarSizeW/2;
+  var simonY = pillarSizeH + roomSize
+  stage.addChild(drawSimon(simonX,simonY));
+  stage.update();
 
-  // Leaving this blue border here so that I can see the edge of the canvas
-  ctx.strokeStyle = 'blue';
-  ctx.lineWidth = '1';
-  ctx.strokeRect(0, 0, window.innerWidth, window.innerHeight);
 }
 
 function drawRoom(off){
@@ -90,18 +88,18 @@ function drawRoom(off){
     }
     // Top Pillars
     for (let i = 0; i < haz; i++) {
-      drawPillar(pillarArray[i], 0);
+      stage.addChild(drawPillar(pillarArray[i], 0));
     }
     // Bottom Pillars
     for (let i = 0; i < haz; i++) {
-      drawPillar(pillarArray[i], pillarSizeH + roomSize);
+      stage.addChild(drawPillar(pillarArray[i], pillarSizeH + roomSize));
     }
     // Left Wall
-    drawWall(0-off,0,pillarStart+5, window.innerHeight);
+    stage.addChild(drawWall(0-off,0,pillarStart+5, window.innerHeight));
     // Right Wall
     rWallX = pillarStart+((pillarSizeW+pillarGapW)*haz)-pillarGapW-5-off;
-    drawWall(rWallX,0,1000, window.innerHeight);
-    drawButton((pillarArray[pillarArray.length-1]+(pillarSizeW/2)), pillarSizeH + roomSize);
+    stage.addChild(drawWall(rWallX,0,1000, window.innerHeight));
+    stage.addChild(drawButton((pillarArray[pillarArray.length-1]+(pillarSizeW/2)), pillarSizeH + roomSize));
   }
   
   // Otherwise they are drawn from the far left side
@@ -112,18 +110,18 @@ function drawRoom(off){
       }
       // Top Pillars
       for (let i = 0; i < haz; i++) {
-        drawPillar(pillarArray[i], 0);
+        stage.addChild(drawPillar(pillarArray[i], 0));
       }
       // Bottom Pillars
       for (let i = 0; i < haz; i++) {
-        drawPillar(pillarArray[i], pillarSizeH + roomSize);
+        stage.addChild(drawPillar(pillarArray[i], pillarSizeH + roomSize));
       }
       // Left Wall
-      drawWall(0-off,0,105, window.innerHeight);
+      stage.addChild(drawWall(0-off,0,105, window.innerHeight));
       // Right Wall
       rWallX = ((pillarSizeW+pillarGapW)*haz)-5-off;
-      drawWall(rWallX,0,1000, window.innerHeight);
-      drawButton((pillarArray[pillarArray.length-1]+(pillarSizeW/2)), pillarSizeH + roomSize);
+      stage.addChild(drawWall(rWallX,0,1000, window.innerHeight));
+      stage.addChild(drawButton((pillarArray[pillarArray.length-1]+(pillarSizeW/2)), pillarSizeH + roomSize));
     }
 }
 
@@ -132,34 +130,43 @@ function drawSimon(x, y) {
   xn = x - simonSize/2;
   yn = y - simonSize;
 
-  ctx.beginPath();
-  ctx.rect(xn, yn, simonSize, simonSize);
-  ctx.fillStyle = "#0095DD";
-  ctx.fill();
-  ctx.closePath();
+  var graphics = new createjs.Graphics()
+  graphics.beginFill('#0095DD');
+  graphics.rect(xn,yn,simonSize,simonSize);
+  
+  // Draw dot for debugging
+  graphics.beginFill('#000000')
+  graphics.rect(x,y,2,2);
 
-  drawDot(x,y);
+  return (new createjs.Shape(graphics));
 }
 
 function drawPillar(x, y){
 
-  ctx.beginPath();
-  ctx.rect(x, y, pillarSizeW, pillarSizeH);
-  ctx.fillStyle = "#999999";
-  ctx.fill();
-  ctx.closePath();
+  var graphics = new createjs.Graphics()
+  graphics.beginFill('#999999');
+  graphics.rect(x,y,pillarSizeW,pillarSizeH);
+  
+  // Draw dot for debugging
+  graphics.beginFill('#000000')
+  graphics.rect(x,y,2,2);
 
-  drawDot(x, y);
+  return (new createjs.Shape(graphics));
 
 }
 
 function drawWall(x, y, w, h){
 
-  ctx.beginPath();
-  ctx.rect(x, y, w, h);
-  ctx.fillStyle = "#999999";
-  ctx.fill();
-  ctx.closePath();
+  var graphics = new createjs.Graphics()
+  graphics.beginFill('#999999');
+  graphics.rect(x,y,w,h);
+  
+  // Draw dot for debugging
+  graphics.beginFill('#000000')
+  graphics.rect(x,y,2,2);
+
+  return (new createjs.Shape(graphics));
+
 }
 
 function drawButton(x, y){
@@ -168,13 +175,16 @@ function drawButton(x, y){
   xn = x - (simonSize*1.2)/2;
   yn = y - simonSize/4;
 
-  ctx.beginPath();
-  ctx.rect(xn, yn, simonSize*1.2, simonSize/4);
-  ctx.fillStyle = "#FF0000";
-  ctx.fill();
-  ctx.closePath();
+  var graphics = new createjs.Graphics()
+  graphics.beginFill('#FF0000');
+  graphics.rect(xn, yn, simonSize*1.2, simonSize/4);
+  
+  // Draw dot for debugging
+  graphics.beginFill('#000000')
+  graphics.rect(x,y,2,2);
 
-  drawDot(x, y);
+  return (new createjs.Shape(graphics));
+
 }
 
 // Function used for seeing difference between where object is drawn and coordinates entered

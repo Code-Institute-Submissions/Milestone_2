@@ -1,8 +1,8 @@
 // https://www.waitingforfriday.com/?p=586 - How Simon works 
 
-// Initializing the game Canvas
+// Initializing the game Canvas and Stage
 var canvas = document.getElementById("maincanvas");
-var ctx = canvas.getContext("2d");
+var stage = new createjs.Stage(canvas);
 
 // gameState object keeps track of the user moves and game moves
 var gameState = {
