@@ -39,6 +39,8 @@ var grphState = {
   get pillarNum(){
     return Math.ceil(this.winW/(this.pillarWGapW))},
 
+  pillarNumCount:0,
+
   // An array to store the pillar locations
   pillarArray:[],
 
@@ -49,16 +51,24 @@ var grphState = {
   rWallX:0
 };
 
+var animationFlag = false;
+var buttonFlag = false;
+
 // Function used to start listening for screen resizes and draws the first canvas at the current screensize
 function initialize() {
 
+  // Listen for canvas resize
   window.addEventListener('resize', resizeCanvas, false);
-  // Used to initialize the canvas on first loading the page
+  
+  // Initialize the canvas on first loading the page
   resizeCanvas();
+  
+  // Initial Draw
+  initDraw(5);
 
-  // Generate a default room, this should be chaneged for a splash screen in future
-  generateRoom(5);
-  draw();
+  // Start animation ticker
+  createjs.Ticker.framerate = (60);
+  createjs.Ticker.addEventListener("tick", loopDraw);
 }
 
 // Runs each time the DOM window resize event fires.
@@ -71,30 +81,113 @@ function resizeCanvas() {
   grphState.winW = window.innerWidth;
   grphState.winH = window.innerHeight;
 
-  draw();
+  // initDraw(5);
 }
 
-// Display custom canvas.
-// resizes along with the browser window.
-function draw(pill) {
+// Draw function used to 'set the stage'
+function initDraw(num){
 
-  var off = 0;
-  // Start by clearing the canvas
-  stage.removeAllChildren();
-  
-  var simonX = grphState.pillarArray[pill]+grphState.pillarW/2;
-  var simonY = grphState.pillarH + grphState.roomH
+  // Generate a default room, this should be chaneged for a splash screen in future
+  generateRoom(num);
 
-  if (simonX > grphState.cent){
-    off = simonX - grphState.cent
-    simonX = grphState.cent
-  }
-  
-  drawRoom(off);
-  stage.addChild(drawSimon(simonX,simonY));
+  var simonX = grphState.pillarArray[0]+grphState.pillarW/2;
+  var simonY = grphState.pillarH + grphState.roomH;
+  drawRoom(0);
+  simon = drawSimon(simonX, simonY)
+  stage.addChild(simon)
+  stage.addChild(room);
   stage.update();
-
 }
+
+
+function loopDraw(){
+  
+  // console.log(animationFlag);
+  // console.log(animationFlag, gameState.typeMoveQ);
+  // console.log(buttonFlag);
+
+  // console.log((room.children.length - 3)/2, grphState.pillarArray.length);
+  // If a new pillar is added and the button has been pushed the room is redrawn
+  if ((grphState.pillarArray.length > (room.children.length - 3)/2) && buttonFlag == true){
+    console.log('Redraw Room');
+    stage.removeAllChildren();
+    console.log('buttonFlag reset');
+    buttonFlag = false;
+    animationFlag = false;
+    var simonX = grphState.pillarArray[0]+grphState.pillarW/2;
+    var simonY = grphState.pillarH + grphState.roomH;
+    grphState.pillarNumCount = 0;
+    drawRoom(grphState.pillarArray.length);
+    simon = drawSimon(simonX, simonY)
+    stage.addChild(simon)
+    stage.addChild(room);
+    stage.update();
+  }
+
+  // console.log(simon.x, simon.y);
+
+  var uml = gameState.userMoves.length;
+  var tml = gameState.typeMovesTrack.length;
+  var gml = gameState.gameMoves.length;
+  // var pn = parseInt(gameState.userMoves.length/2)
+
+  // console.log(tml, gml, uml);
+  // Pull out next move type
+  if (tml > (gml-uml)){
+    console.log(tml, gml, uml);
+    gameState.typeMoveQ.push(gameState.typeMoves[tml-1]);
+    console.log(gameState.typeMoveQ);
+    // console.log(gameState.typeMoves[tml-1]);
+    gameState.typeMovesTrack.pop();
+  }
+
+  // This is kinda messy, might be better to make the button a tracked object itself
+  var button = room.children[0];
+  var buttonX = button.graphics.command.x - ((grphState.simonSize*1.2)/2);
+  var buttonY = button.graphics.command.y - grphState.simonSize/4;
+  var simonX = simon.x + simon.graphics.command.x;
+  var simonY = simon.y + simon.graphics.command.y;
+
+  // If the usermoves is the same as the game moves the button should be pushed
+  // console.log(simonX, buttonX);
+  if (gml == uml && simonX > buttonX){
+    if (simonY >= (buttonY)){
+      button.regY = buttonY - simonY;
+      console.log('ButtonPressed');
+      if (animationFlag == false){
+        animationFlag = true;
+        // After 1 second the game resets
+        setTimeout(function(){buttonFlag = true; checkGame(); console.log('Next Level');}, 1000);
+      }
+    }
+  }
+
+  // var nextAni = gameState.typeMoveQ[0];
+
+  // This will need to check the direction that was pushed 
+  if (gameState.typeMoveQ[0] == 'Jump' && animationFlag == false){
+    console.log('Jumping');
+    animationFlag = true;
+    var pn = grphState.pillarNumCount;
+    var pd = grphState.pillarArray[pn+1] - grphState.pillarArray[0]
+    grphState.pillarNumCount++;
+    createjs.Tween.get(simon).wait(1000)
+      .to({x: pd, y: -50}, 100)
+      .to({x: pd, y: 0}, 100)
+      .call(function(){animationFlag = false;})
+    gameState.typeMoveQ.shift();
+  }
+  else if (gameState.typeMoveQ[0] == 'Hazord' && animationFlag == false){
+    animationFlag = true;
+    var pillarIndex = (grphState.pillarNumCount * 2)-1;
+    if (gameState.userMoves[pillarIndex].includes('Up')){
+      createjs.Tween.get(simon).wait(1000).to({y: -100}, 100).to({y: 0}, 100).call(function(){animationFlag = false;});
+    }
+    gameState.typeMoveQ.shift();
+  }
+  stage.update();
+}
+
 
 // This function is used to calcualte the positions of the pillars and walls for the room
 function generateRoom(pill){
@@ -103,7 +196,6 @@ function generateRoom(pill){
 
   // This is used to center pillars on the screen if there are too few to fill the screen
   if (pill < grphState.pillarNum){
-    console.log(pill, grphState.pillarNum);
     grphState.pillarStart = calcPillarStart(pill);
   }
   // Otherwise they are drawn from the far left side
@@ -141,26 +233,31 @@ function calcrWallX(pill){
 }
 
 function drawRoom(off){
+  room.removeAllChildren();
   var pn = grphState.pillarArray.length;
+  // console.log('Draw Room');
+
+  // Button first so that it animated behind things
+  room.addChild(drawButton((grphState.pillarArray[pn-1]+(grphState.pillarW/2))-off, grphState.pillarH + grphState.roomH));
 
   // Top Pillars
   for (let i = 0; i < pn; i++) {
-    stage.addChild(drawPillar(grphState.pillarArray[i]-off, 0));
+    room.addChild(drawPillar(grphState.pillarArray[i]-off, 0));
   }
   // Bottom Pillars
   for (let i = 0; i < pn; i++) {
-    stage.addChild(drawPillar(grphState.pillarArray[i]-off, grphState.pillarH + grphState.roomH));
+    room.addChild(drawPillar(grphState.pillarArray[i]-off, grphState.pillarH + grphState.roomH));
   }
   // Left Wall
-  stage.addChild(drawWall(0-off,0,grphState.pillarStart+5, grphState.winH));
+  room.addChild(drawWall(0-off,0,grphState.pillarStart+5, grphState.winH));
   // Right Wall
-  stage.addChild(drawWall(grphState.rWallX-off,0,10000, grphState.winH));
-  // Button
-  stage.addChild(drawButton((grphState.pillarArray[pn-1]+(grphState.pillarW/2))-off, grphState.pillarH + grphState.roomH));
+  room.addChild(drawWall(grphState.rWallX-off,0,1000, grphState.winH));
 
 }
 
 function drawSimon(x, y) {
+
+  // console.log('Draw Simon');
   // Centering Simon
   var ss = grphState.simonSize;
   var xn = x - ss/2;

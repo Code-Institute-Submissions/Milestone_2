@@ -1,7 +1,11 @@
 // gameState object keeps track of the user moves and game moves
 var gameState = {
-  userMoves:[], 
-  gameMoves:[], 
+  userMoves:[],
+  userMovesQ:[], 
+  gameMoves:[],
+  typeMoves:[], 
+  typeMovesTrack:[],
+  typeMoveQ:[], 
   validMoves:["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"]};
 
 // Function returns a random move
@@ -15,16 +19,16 @@ function nextmoveRandom() {
   var num = parseInt((Math.random() * 4));
   var move;
   if (num == 0) {
-    move = 'ArrowRight';
+    move = 'ArrowUp';
     // move = 'ArrowUp';
   } else if (num == 1) {
-    move = 'ArrowRight';
+    move = 'ArrowUp';
     // move = 'ArrowDown';
   } else if (num == 2) {
-    move = 'ArrowRight';
+    move = 'ArrowUp';
     // move = 'ArrowLeft';
   } else {
-    move = 'ArrowRight';
+    move = 'ArrowUp';
   }
   return move;
 }
@@ -35,18 +39,27 @@ function gameStart(num){
 
   // Clearing gameState arrays
   gameState.userMoves = [];
+  gameState.userMovesQ = [];
   gameState.gameMoves = [];
+  gameState.typeMoves = []; 
+  gameState.typeMovesTrack = [];
+  gameState.typeMoveQ = []; 
 
   // Adding number of moves to game array
   for (let i = 0; i < num; i++) {
     gameState.gameMoves.push('ArrowRight');
+    gameState.typeMoves.push('Jump');
     gameState.gameMoves.push(nextmoveRandom());
+    gameState.typeMoves.push('Hazord')
   }
   gameState.gameMoves.push('ArrowRight');
+  gameState.typeMoves.push('Jump');
+
+  gameState.typeMovesTrack = [...gameState.typeMoves];
 
   // Generate a room for the start of the game
   generateRoom(num+2);
-
+  // buttonFlag = true;
   // Print game moves to console
   console.log(gameState.gameMoves);
 
@@ -59,18 +72,26 @@ function checkGame(){
   var gm = gameState.gameMoves;
   var um = gameState.userMoves;
 
+  // If the user enter more moves than gameMoves they are imidiatly removed
+  if (um.length > gm.length){
+    gameState.userMoves.pop();
+  }
+
   // Checks that the latest entered move is the same as latest generated move
   // If they are not the game ends and the startFlag is reset 
-  if (um[um.length - 1] != gm[um.length - 1]){
+  else if (um[um.length - 1] != gm[um.length - 1]){
     alert('Game Over - Press Space to start again');
     startFlag = false;
   }
   
   // If the check is passed and the length of the two arrays are equal then userMoves is reset and one extra move it added to gameMoves
-  if (um.length == gm.length) {
+  else if (um.length == gm.length && buttonFlag == true) {
     gameState.userMoves = [];
     gameState.gameMoves.push(nextmoveRandom());
+    gameState.typeMoves.push('Hazord')
     gameState.gameMoves.push('ArrowRight');
+    gameState.typeMoves.push('Jump');
+    gameState.typeMovesTrack = [...gameState.typeMoves];
     generateRoom(((gameState.gameMoves.length-1)/2) + 2); //+2 for start and end platforms
     console.log(gameState.gameMoves);
   }

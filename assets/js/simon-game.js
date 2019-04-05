@@ -3,6 +3,8 @@
 // Initializing the game Canvas and Stage
 var canvas = document.getElementById("maincanvas");
 var stage = new createjs.Stage(canvas);
+var room = new createjs.Container();
+var simon;
 
 
 // startFlag is used to trigger the game on and off
@@ -36,9 +38,9 @@ function keyDownHandler(e) {
     gameState.userMoves.push(e.code);
 
     if (gameState.userMoves.length % 2 != 0){
-      move = parseInt(gameState.userMoves.length/2) + 1;
-      console.log('Pillar ' + move);
-      draw(move);
+      move = parseInt(gameState.userMoves.length/2);
+    }
+    else{
 
     }
 
@@ -50,7 +52,7 @@ function keyDownHandler(e) {
 
 // Start listening to resize events and draw canvas.
 initialize();
-// setInterval(draw, 10);
+
 // Listening for button press
 document.addEventListener("keydown", keyDownHandler);
 console.log("Press space to start");
