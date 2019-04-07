@@ -4,16 +4,11 @@
 var canvas = document.getElementById("maincanvas");
 var stage = new createjs.Stage(canvas);
 var room = new createjs.Container();
-var simon;
+var simon; // simon is a global object so he's easier to keep track of
 
 
 // startFlag is used to trigger the game on and off
 var startFlag = false;
-
-// Functions used to dynamically resize the canvas to the device size
-// http://htmlcheats.com/html/resize-the-html5-canvas-dyamically/
-// I should use the screensize to create a global multiplicitive variable to dynamically resize the game elements also 
-// Also is this expensive to run constantly? 
 
 // Function activated when a keyboard button is pressed
 function keyDownHandler(e) {
@@ -40,13 +35,9 @@ function keyDownHandler(e) {
     if (gameState.userMoves.length % 2 != 0){
       move = parseInt(gameState.userMoves.length/2);
     }
-    else{
-
-    }
 
     checkGame();
   }
-
 }
 
 

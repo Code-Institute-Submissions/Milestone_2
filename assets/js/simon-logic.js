@@ -33,7 +33,7 @@ function nextmoveRandom() {
   return move;
 }
 
-// Function used to start game with certain number of moves
+// Function used to start game with given number of moves
 function gameStart(num){
   console.log("New Game");
 
@@ -45,12 +45,12 @@ function gameStart(num){
   gameState.typeMovesTrack = [];
   gameState.typeMoveQ = []; 
 
-  // Adding number of moves to game array
+  // Adding number of moves to game arrays
   for (let i = 0; i < num; i++) {
     gameState.gameMoves.push('ArrowRight');
     gameState.typeMoves.push('Jump');
     gameState.gameMoves.push(nextmoveRandom());
-    gameState.typeMoves.push('Hazord')
+    gameState.typeMoves.push('Hazord');
   }
   gameState.gameMoves.push('ArrowRight');
   gameState.typeMoves.push('Jump');
@@ -59,7 +59,7 @@ function gameStart(num){
 
   // Generate a room for the start of the game
   generateRoom(num+2);
-  // buttonFlag = true;
+
   // Print game moves to console
   console.log(gameState.gameMoves);
 
@@ -68,11 +68,11 @@ function gameStart(num){
 // Function to check if the player has entered a correct move
 // If the move is wrong the game is reset
 function checkGame(){
-  // makes the code a little easier to read
-  var gm = gameState.gameMoves;
-  var um = gameState.userMoves;
 
-  // If the user enter more moves than gameMoves they are imidiatly removed
+  var gm = gameState.gameMoves; // Game moves
+  var um = gameState.userMoves; // User moves
+
+  // If the user enter more moves than there are gameMoves they are immediately removed
   if (um.length > gm.length){
     gameState.userMoves.pop();
   }
@@ -80,15 +80,14 @@ function checkGame(){
   // Checks that the latest entered move is the same as latest generated move
   // If they are not the game ends and the startFlag is reset 
   else if (um[um.length - 1] != gm[um.length - 1]){
-    alert('Game Over - Press Space to start again');
-    startFlag = false;
+    gameOver();
   }
   
   // If the check is passed and the length of the two arrays are equal then userMoves is reset and one extra move it added to gameMoves
   else if (um.length == gm.length && buttonFlag == true) {
     gameState.userMoves = [];
     gameState.gameMoves.push(nextmoveRandom());
-    gameState.typeMoves.push('Hazord')
+    gameState.typeMoves.push('Hazord');
     gameState.gameMoves.push('ArrowRight');
     gameState.typeMoves.push('Jump');
     gameState.typeMovesTrack = [...gameState.typeMoves];
@@ -96,4 +95,17 @@ function checkGame(){
     console.log(gameState.gameMoves);
   }
 
+}
+
+// This function ends and resets the game. At the moment it will end the game as soon as a wrong move is entered, the next stage is to wait until the wrong move is animated then end the game
+function gameOver(){
+  alert('Game Over - Press Space to start again');
+  startFlag = false;
+  // Clearing gameState arrays
+  gameState.userMoves = [];
+  gameState.userMovesQ = [];
+  gameState.gameMoves = [];
+  gameState.typeMoves = []; 
+  gameState.typeMovesTrack = [];
+  gameState.typeMoveQ = []; 
 }
