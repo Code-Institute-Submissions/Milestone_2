@@ -227,7 +227,7 @@ function loopDraw(){
   }
 
   // If it is a hazard move then simon will avoid a hazard, at the moment there is only one hazard, up. More hazard animations will be added, like down 
-  else if (gameState.typeMoveQ[0] == 'Hazord' && animationFlag == false){
+  else if (gameState.typeMoveQ[0] == 'Hazard' && animationFlag == false){
     animationFlag = true;
     var pi = (grphState.pillarNumCount * 2)-1; // Pillar index of the current pillar for pillarArray
     var ph = grphState.pillarH + grphState.roomH; //Pillar Height

@@ -50,7 +50,7 @@ function gameStart(num){
     gameState.gameMoves.push('ArrowRight');
     gameState.typeMoves.push('Jump');
     gameState.gameMoves.push(nextmoveRandom());
-    gameState.typeMoves.push('Hazord');
+    gameState.typeMoves.push('Hazard');
   }
   gameState.gameMoves.push('ArrowRight');
   gameState.typeMoves.push('Jump');
@@ -87,7 +87,7 @@ function checkGame(){
   else if (um.length == gm.length && buttonFlag == true) {
     gameState.userMoves = [];
     gameState.gameMoves.push(nextmoveRandom());
-    gameState.typeMoves.push('Hazord');
+    gameState.typeMoves.push('Hazard');
     gameState.gameMoves.push('ArrowRight');
     gameState.typeMoves.push('Jump');
     gameState.typeMovesTrack = [...gameState.typeMoves];
