@@ -1,5 +1,6 @@
 // gameState object keeps track of the user moves and game moves
 var gameState = {
+  userMoveCount:0,
   userMoves:[],
   userMovesQ:[], 
   gameMoves:[],
@@ -29,6 +30,7 @@ function nextmoveRandom() {
     // move = 'ArrowLeft';
   } else {
     move = 'ArrowUp';
+    // move = 'ArrowRight';
   }
   return move;
 }
@@ -60,6 +62,9 @@ function gameStart(num){
   // Generate a room for the start of the game
   generateRoom(num+2);
 
+  // Press the button to reset the stage
+  buttonFlag = true;
+
   // Print game moves to console
   console.log(gameState.gameMoves);
 
@@ -67,19 +72,25 @@ function gameStart(num){
 
 // Function to check if the player has entered a correct move
 // If the move is wrong the game is reset
-function checkGame(){
+function gameCheck(move){
 
   var gm = gameState.gameMoves; // Game moves
   var um = gameState.userMoves; // User moves
 
   // If the user enter more moves than there are gameMoves they are immediately removed
+  // I have no idea why but when I add or take away things from this loop the code breaks in the simon-graphics file, I get a gameState does not exist at line 154
+  // ¯\_(ツ)_/¯
   if (um.length > gm.length){
+    console.log('Pop?');
     gameState.userMoves.pop();
   }
+  // gameOverflow();
+  // console.log('Test'); // Even adding this humble console log breaks the code, I have no idea why
+  // var test = 1; // This too?
 
   // Checks that the latest entered move is the same as latest generated move
   // If they are not the game ends and the startFlag is reset 
-  else if (um[um.length - 1] != gm[um.length - 1]){
+  else if (um[move] != gm[move]){
     gameOver();
   }
   
@@ -95,6 +106,17 @@ function checkGame(){
     console.log(gameState.gameMoves);
   }
 
+}
+
+function gameOverflow(){
+  var gm = gameState.gameMoves; // Game moves
+  var um = gameState.userMoves; // User moves
+
+  // If the user enter more moves than there are gameMoves they are immediately removed
+  while (um.length > gm.length){
+    console.log('Pop?');
+    gameState.userMoves.pop();
+  }
 }
 
 // This function ends and resets the game. At the moment it will end the game as soon as a wrong move is entered, the next stage is to wait until the wrong move is animated then end the game

@@ -31,12 +31,8 @@ function keyDownHandler(e) {
   // If the games has started and the move is valid then the key is added to the gameState and the gameState checked
   if (moveFlag && startFlag){
     gameState.userMoves.push(e.code);
-
-    if (gameState.userMoves.length % 2 != 0){
-      move = parseInt(gameState.userMoves.length/2);
-    }
-
-    checkGame();
+    
+    // gameCheck();
   }
 }
 

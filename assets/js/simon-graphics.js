@@ -125,16 +125,19 @@ function initDraw(num){
 
 // This is the main loop of the game and is ticked using the EventListener started in the initialize function above. As of now it contains everything that happens in the game. Once the room is generated and stage set, it watches for when a move is made by the player, that move and it's type is added to the game queue and then processed as either a pillar jump move or a hazard move. Those moves are then checked and animated. At the moment the game logic handles when the move is checked as correct meaning the game ends abruptly even if the move hasn't been animated yet so that has to be changed.  
 function loopDraw(){
-  
+  // Just before the loop runs, if the user has managed to make more moves than game moves this ensures that they are removed before they cause trouble 
+  gameOverflow();
+
   // If a new pillar is added or the button has been pushed the room is redrawn
   if ((grphState.pillarArray.length != (room.children.length - 3)/2) || buttonFlag == true){
     
     // Clear everything before restarting
     stage.removeAllChildren();
 
-    // Resets the button and animation flags
+    // Resets the button and animation flags and resets the move counter
     buttonFlag = false;
     animationFlag = false;
+    gameState.userMoveCount = 0;
 
     // Calculate the position of simon for the first pillar and reset the pillar counter
     var simonX = grphState.pillarArray[0]+grphState.pillarW/2;
@@ -154,7 +157,7 @@ function loopDraw(){
   var tml = gameState.typeMovesTrack.length; // Number of the types of game moves (hazard or jump)
   var gml = gameState.gameMoves.length; // Number of raw game moves (L,R,U,D)
 
-
+  console.log(gameState.typeMoveQ.length);
   // If a new move is added to the users move list then that type of move is removed from the move tracker and pushed to the queue to be animated. This move tracking system is used so that animations could finish playing before the next one starts 
   if (tml > (gml-uml)){
     gameState.typeMoveQ.push(gameState.typeMoves[tml-1]);
@@ -179,7 +182,7 @@ function loopDraw(){
         console.log('ButtonPressed');
         animationFlag = true;
         // After 1 second the game resets
-        setTimeout(function(){buttonFlag = true; checkGame(); console.log('Next Level');}, 1000);
+        setTimeout(function(){buttonFlag = true; gameCheck(); console.log('Next Level');}, 1000);
       }
     }
   }
@@ -217,13 +220,19 @@ function loopDraw(){
     // Otherwise simon is animated normally
     createjs.Tween.get(simon)
       .to({guide:{ path:[ps,ph, pd,ph-(rh/2),pe,ph] }},at)
-      .call(function(){animationFlag = false;});
+      .wait(50)
+      .call(function(){
+        animationFlag = false;
+        console.log(gameState.userMoveCount);
+        gameCheck(gameState.userMoveCount);
+        gameState.userMoveCount++;});
     
     // The completed move is removed from the move queue
     gameState.typeMoveQ.shift(); 
-    
-    // The pillar number is incremented 
+
+    // The pillar numbers and usermove counters are incremented 
     grphState.pillarNumCount++;
+    
   }
 
   // If it is a hazard move then simon will avoid a hazard, at the moment there is only one hazard, up. More hazard animations will be added, like down 
@@ -231,13 +240,63 @@ function loopDraw(){
     animationFlag = true;
     var pi = (grphState.pillarNumCount * 2)-1; // Pillar index of the current pillar for pillarArray
     var ph = grphState.pillarH + grphState.roomH; //Pillar Height
+    var pw = grphState.pillarW; // Pillar Width
     var rh = grphState.roomH; // Room Height
+    console.log(pw, pw-(pw/2));
     // If the move is an up, simon jumps up  
     if (gameState.userMoves[pi].includes('Up')){
-      createjs.Tween.get(simon).to({y: ph-(rh/4)}, 100).to({y: ph}, 200).call(function(){animationFlag = false;});
+      createjs.Tween.get(simon)
+        .to({y: ph-(rh/4)}, 100)
+        .to({y: ph}, 200)
+      .call(function(){
+        animationFlag = false;
+        console.log(gameState.userMoveCount);
+        gameCheck(gameState.userMoveCount);
+        gameState.userMoveCount++;});
+    }
+    // If the move is a down, simon ducks
+    else if (gameState.userMoves[pi].includes('Down')){
+      createjs.Tween.get(simon)
+        .to({scaleY: 0.25}, 100) // <- Ducks 1/4 height
+        .wait(200)
+        .to({scaleY: 1}, 200)
+      .call(function(){
+        animationFlag = false;
+        console.log(gameState.userMoveCount);
+        gameCheck(gameState.userMoveCount);
+        gameState.userMoveCount++;});
+    }
+    // If the move is a left, simon dodges left
+    else if (gameState.userMoves[pi].includes('Left')){
+      createjs.Tween.get(simon)
+        .to({regX: (pw/2)}, 100)
+        .wait(200)
+        .to({regX: 0}, 200)
+        .wait(100)
+      .call(function(){
+        animationFlag = false;
+        console.log(gameState.userMoveCount);
+        gameCheck(gameState.userMoveCount);
+        gameState.userMoveCount++;});
+    }
+    // If the move is a right, simon dodges right
+    else if (gameState.userMoves[pi].includes('Right')){
+      createjs.Tween.get(simon)
+        .to({regX: -(pw/2)}, 100)
+        .wait(200)
+        .to({regX: 0}, 200)
+        .wait(100)
+      .call(function(){
+        animationFlag = false;
+        console.log(gameState.userMoveCount);
+        gameCheck(gameState.userMoveCount);
+        gameState.userMoveCount++;});
     }
 
-    // The completed move is removed from the move queue
+    // The game is checked for gameover
+    gameCheck(gameState.userMoveCount);
+
+    // The completed move is removed from the move queue and the usermove counter incremented
     gameState.typeMoveQ.shift();
   }
   stage.update();
