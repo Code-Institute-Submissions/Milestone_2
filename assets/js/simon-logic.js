@@ -5,6 +5,7 @@ var gameState = {
   userMovesQ:[], 
   gameMoves:[],
   typeMoves:[], 
+  hazdMoves:[], 
   typeMovesTrack:[],
   typeMoveQ:[], 
   validMoves:["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"]};
@@ -17,26 +18,29 @@ var gameState = {
 // 
 //https://gamedevelopment.tutsplus.com/tutorials/shuffle-bags-making-random-feel-more-random--gamedev-1249
 function nextmoveRandom() {
+
   var num = parseInt((Math.random() * 4));
   var move;
   if (num == 0) {
-    move = 'ArrowUp';
-    // move = 'ArrowUp';
-  } else if (num == 1) {
-    move = 'ArrowUp';
     // move = 'ArrowDown';
+    move = 'ArrowUp';
+  } else if (num == 1) {
+    // move = 'ArrowDown';
+    move = 'ArrowDown';
   } else if (num == 2) {
-    move = 'ArrowUp';
-    // move = 'ArrowLeft';
+    // move = 'ArrowUp';
+    move = 'ArrowLeft';
   } else {
-    move = 'ArrowUp';
-    // move = 'ArrowRight';
+    // move = 'ArrowUp';
+    move = 'ArrowRight';
   }
   return move;
+
 }
 
 // Function used to start game with given number of moves
 function gameStart(num){
+
   console.log("New Game");
 
   // Clearing gameState arrays
@@ -49,14 +53,18 @@ function gameStart(num){
 
   // Adding number of moves to game arrays
   for (let i = 0; i < num; i++) {
+    var move = nextmoveRandom();
     gameState.gameMoves.push('ArrowRight');
     gameState.typeMoves.push('Jump');
-    gameState.gameMoves.push(nextmoveRandom());
+    gameState.gameMoves.push(move);
+    gameState.hazdMoves.push(move);
     gameState.typeMoves.push('Hazard');
   }
   gameState.gameMoves.push('ArrowRight');
   gameState.typeMoves.push('Jump');
 
+  // When dupicating an array this notation needs to be used as JavaScript is a pointer based language
+  //https://www.samanthaming.com/tidbits/35-es6-way-to-clone-an-array
   gameState.typeMovesTrack = [...gameState.typeMoves];
 
   // Generate a room for the start of the game
@@ -81,12 +89,11 @@ function gameCheck(move){
   // I have no idea why but when I add or take away things from this loop the code breaks in the simon-graphics file, I get a gameState does not exist at line 154
   // ¯\_(ツ)_/¯
   if (um.length > gm.length){
-    console.log('Pop?');
     gameState.userMoves.pop();
   }
   // gameOverflow();
   // console.log('Test'); // Even adding this humble console log breaks the code, I have no idea why
-  // var test = 1; // This too?
+  // var test = 1; // This too
 
   // Checks that the latest entered move is the same as latest generated move
   // If they are not the game ends and the startFlag is reset 
@@ -96,8 +103,10 @@ function gameCheck(move){
   
   // If the check is passed and the length of the two arrays are equal then userMoves is reset and one extra move it added to gameMoves
   else if (um.length == gm.length && buttonFlag == true) {
+    var move = nextmoveRandom();
     gameState.userMoves = [];
-    gameState.gameMoves.push(nextmoveRandom());
+    gameState.gameMoves.push(move);
+    gameState.hazdMoves.push(move);
     gameState.typeMoves.push('Hazard');
     gameState.gameMoves.push('ArrowRight');
     gameState.typeMoves.push('Jump');
@@ -109,18 +118,20 @@ function gameCheck(move){
 }
 
 function gameOverflow(){
+
   var gm = gameState.gameMoves; // Game moves
   var um = gameState.userMoves; // User moves
 
   // If the user enter more moves than there are gameMoves they are immediately removed
   while (um.length > gm.length){
-    console.log('Pop?');
     gameState.userMoves.pop();
   }
+
 }
 
-// This function ends and resets the game. At the moment it will end the game as soon as a wrong move is entered, the next stage is to wait until the wrong move is animated then end the game
+// This function ends and resets the game. 
 function gameOver(){
+
   alert('Game Over - Press Space to start again');
   startFlag = false;
   // Clearing gameState arrays
@@ -130,4 +141,5 @@ function gameOver(){
   gameState.typeMoves = []; 
   gameState.typeMovesTrack = [];
   gameState.typeMoveQ = []; 
+
 }
