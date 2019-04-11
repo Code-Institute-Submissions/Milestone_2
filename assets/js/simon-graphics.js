@@ -268,7 +268,7 @@ function loopDraw(){
       move = move.replace('Arrow','');
 
       // Create a textbox, add it to the stage and then display it for half a second
-      var text = drawTextbox(move,pe,th)
+      var text = drawTextbox(move,pe,th);
       stage.addChild(text); 
       createjs.Tween.get(text)
         .wait(500)
@@ -699,10 +699,10 @@ function drawTextbox(text, x, y){
   var bh = text._rectangle.height + (fontSize/2);
 
   // A graphics object is made the size and shape of the text with some padding
-  var graphics = new createjs.Graphics()
+  var graphics = new createjs.Graphics();
   graphics.beginFill('rgba(0,0,0,0.75)');
   graphics.rect(-fontSize/4, -fontSize/4, bw, bh);
-  var box = new createjs.Shape(graphics)
+  var box = new createjs.Shape(graphics);
 
   // The text and the box are added to the same container, centered on the given point and returned
   var textbox = new createjs.Container();
