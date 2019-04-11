@@ -59,6 +59,18 @@ var grphState = {
   rWallX:0
 };
 
+var dialogue = {
+  1: ['Hello Simon', 'I need your help to push that big red button over there','If you follow my instructions, you will make it there safely','Jump to that pillar ahead of you using the right arrow, then do as I say'],
+  2: ['Hello again Simon', 'I need you to push that big red button over there','If you do as I say, you will make it there safely'],
+  3: ['I need you to push that button Simon. Just do as I say and you will be safe'],
+  5: ['Keep going Simon', 'I will keep you safe'],
+  8: ['Just do what I say Simon'],
+  9: ['It will all be over soon'],
+  12: ['You have come far Simon', 'Don\'t let me distract you'],
+  14: ['Maybe soon I might let you out of here', 'Or not'],
+  15: ['Just keep doing what I say Simon', 'Just do', 'What', 'I', 'Say']
+};
+
 // Global flags to monitor game state
 var animationFlag = false;
 var buttonFlag = false;
@@ -73,12 +85,19 @@ function initialize() {
   // Initialize the canvas on first loading the page
   resizeCanvas();
   
-  // Initial Draw, hard coded at 7 pillars but should be a splash screen in the future
-  initDraw(7);
+  // Initial Draw
+  // Splash screen should always try to show the button at the end so it is set to max pillarNum -1
+  if (grphState.pillarNum > 3){
+    initDraw(grphState.pillarNum-1);
+  }
+  // If it can't, then draw the minimum of 3
+  else{
+    initDraw(3);
+  }
 
   // Start animation ticker
   createjs.Ticker.framerate = (60);
-  createjs.Ticker.addEventListener("tick", loopDraw);
+  createjs.Ticker.addEventListener('tick', loopDraw);
   createjs.MotionGuidePlugin.install();
 }
 
@@ -156,6 +175,27 @@ function loopDraw(){
     simon = drawSimon(simonX, simonY);
     stage.addChild(simon);
     stage.addChild(room);
+
+    // If the room number matches one of the keys in the dialogue dict then the test is displayed
+    var rn = gameState.hazdMoves.length; // 'Room' number 
+    if (rn in dialogue){
+      // Multiple lines of text are stored in arrays, the array is looped over and each bit of dialogue is shown one after another
+      var textArray = dialogue[rn];
+      for (var i = 0; i < textArray.length; i++) {
+        // A textbox is generated, its visibility set to zero then faded in at the right time
+        var text = drawTextbox(textArray[i],grphState.cent, grphState.pillarH/2);
+        text.alpha = 0;
+        stage.addChild(text);
+        // Fade text animation
+        createjs.Tween.get(text)
+          .wait(3000*i)
+          .to({alpha:1}, 200)
+          .wait(3000)
+          .to({alpha:0}, 200);
+      }
+    }
+
+
     stage.update();
   }
 
@@ -205,6 +245,7 @@ function loopDraw(){
     var ps = grphState.pillarArray[pn] + grphState.pillarW/2; // Pillar Start x
     var pe = grphState.pillarArray[pn+1] + grphState.pillarW/2; // Pillar End x
     var ph = grphState.pillarH + grphState.roomH; // Pillar Height 
+    var th = grphState.pillarH + grphState.roomH/4; // Text Height 
     var rh = grphState.roomH; // Room Height
     var pd = ps + (pe-ps)/2; // Half the pillar distance, used in the animation below
 
@@ -220,7 +261,21 @@ function loopDraw(){
         .to({regX: pe2}, at);
     }
 
-    // Otherwise if simon is not beyod the center he is animated normally
+    // If the jump is to the second last pillar the last instruction is displayed 
+    if (gameState.typeMovesTrack.length == 2){
+      // Pull the move from the keyname
+      var move = gameState.gameMoves[gameState.gameMoves.length-2];
+      move = move.replace('Arrow','');
+
+      // Create a textbox, add it to the stage and then display it for half a second
+      var text = drawTextbox(move,pe,th)
+      stage.addChild(text); 
+      createjs.Tween.get(text)
+        .wait(500)
+        .to({alpha:0}, 200);
+    }
+
+    // Otherwise if simon is not beyond the center he is animated normally
     createjs.Tween.get(simon)
       .to({guide:{ path:[ps,ph, pd,ph-(rh/2),pe,ph] }},at)
       .wait(50)
@@ -338,12 +393,13 @@ function loopDraw(){
 
     var bs = grphState.pillarArray[grphState.pillarNumCount]; // Bolt start
     var by = grphState.pillarH + grphState.roomH + 5; // Bolt y position
-    var bl = grphState.pillarW; // Bolt lenght
+    var bl = grphState.pillarW; // Bolt length
     hazards.addChild(drawBolt(bs, by, bl));
   }
 
   // Update the stage every tick
   stage.update();
+
 }
 
 // This function is used to calculate the positions of the pillars and walls for the room
@@ -381,6 +437,7 @@ function calcPillarStart(pill){
   var pg = grphState.pillarGapR;
 
   return c - ((pw/2)*((pg*(pill-1))+pill)) + 5;
+
 }
 
 // This function calculates where the right-hand wall starts, counting however many pillar 'units' but not forgetting the last pillar has no gap following
@@ -391,10 +448,23 @@ function calcrWallX(pill){
   var pgw = grphState.pillarGapW;
 
   return ps+((pwgw)*pill)-pgw-5;
+
+}
+
+// This small function removes lightning from the hazards container, it needs to be a function so that when the Up animation ends it can remove the last bolt
+function lightningStriker(){
+
+  // Looping through the hazards container, if a child is found with the name 'Bolt' it is removed 
+  for (var i=hazards.children.length - 1; i>=0; i--) {
+    var hchild = hazards.getChildAt(i);
+    if (hchild.name == 'Bolt'){
+      hazards.removeChild(hchild);
+    } 
+  }
+  
 }
 
 // This function clears the room and redraws a generated room
-// Note that all objects that are drawn in other functions are loaded at 0,0 then shifted to the specified x,y coordinates. This was done so that it is easier to track the locations of the objects on the canvas 
 function drawRoom(){
 
   // Clear everything from the room
@@ -423,35 +493,31 @@ function drawRoom(){
   room.addChild(drawWall(0,0,grphState.pillarStart+5, grphState.winH, 'LeftWall'));
   // Right Wall
   room.addChild(drawWall(grphState.rWallX,0,1000, grphState.winH, 'RightWall'));
+
 }
 
-// Returns a simon shape which must be added to either the stage or a container
+// Note that all objects are generated using functions which return a shape or object that must be added to a container or directly to the stage. In the function they are drawn at 0,0 then shifted to the specified x,y coordinates. This was done so that it is easier to track of their locations 
+
+// Returns a simon shape 
 function drawSimon(x, y) {
 
-  // Centering simon
+  // Create a new graphics object centered at 0,0
   var ss = grphState.simonSize;
-  // var xn = x - ss/2;
-  // var yn = y - ss;
-
-  // Create a new graphics object at the 'centered' 0,0
   var graphics = new createjs.Graphics();
-  graphics.beginFill('#0095DD');
+  graphics.beginFill('#0095DD'); // <- The color of simon
   graphics.rect(-(ss/2),-ss,ss,ss);
   
-  // Draw dot where the object is drawn from for debugging
-  // graphics.beginFill('#000000');
-  // graphics.rect(0,0,2,2);
-
-  // The object is then shifted to the specified x,y and given a name
+  // The object is centered on the given point, given a name and returned
   var simn = new createjs.Shape(graphics);
   simn.x = x;
   simn.y = y;
   simn.name = 'Simon';
   
   return (simn);
+
 }
 
-// Returns a pillar shape which must be added to either the stage or a container
+// Returns a pillar shape 
 function drawPillar(x, y, name){
 
   // Create a new graphics object at 0,0
@@ -459,11 +525,7 @@ function drawPillar(x, y, name){
   graphics.beginFill('#999999'); // <- The color of the pillar
   graphics.rect(0,0,grphState.pillarW,grphState.pillarH);
   
-  // Draw dot where the object is drawn from for debugging
-  // graphics.beginFill('#000000');
-  // graphics.rect(0,0,2,2);
-
-  // The object is then shifted to the specified x,y and given a name
+  // The object is moved to the given point, given a name and returned
   var pllr = new createjs.Shape(graphics);
   pllr.x = x;
   pllr.y = y;
@@ -473,19 +535,15 @@ function drawPillar(x, y, name){
 
 }
 
-// Returns a wall shape which must be added to either the stage or a container
+// Returns a wall shape 
 function drawWall(x, y, w, h, name){
 
   // Create a new graphics object at 0,0
   var graphics = new createjs.Graphics();
   graphics.beginFill('#999999'); // <- The color of the wall
   graphics.rect(0,0,w,h);
-  
-  // Draw dot where the object is drawn from for debugging
-  // graphics.beginFill('#000000');
-  // graphics.rect(0,0,2,2);
 
-  // The object is then shifted to the specified x,y and given a name
+  // The object is moved to the given point, given a name and returned
   var wall = new createjs.Shape(graphics);
   wall.x = x;
   wall.y = y;
@@ -495,27 +553,20 @@ function drawWall(x, y, w, h, name){
 
 }
 
-// Returns a button shape which must be added to either the stage or a container
+// Returns a button shape 
 function drawButton(x, y){
 
-  // Centering button
+  // Button width and height from the graphics object
   var bw = grphState.buttonW;
   var bh = grphState.buttonH;
-  // var xn = x - bw/2;
-  // var yn = y - bh;
 
-  // Create a new graphics object at 0,0
+  // Create a new graphics object centered at 0,0
   var graphics = new createjs.Graphics();
   graphics.beginFill('#FF0000'); // <- The color of the button
   graphics.rect(-((bw)/2), -(bh), bw, bh);
   
-  // Draw dot where the object is drawn from for debugging
-  // graphics.beginFill('#000000');
-  // graphics.rect(0,0,2,2);
-
-  // The object is then shifted to the specified x,y and given a name
+  // The object is centered on the given point and given a name
   var bttn = new createjs.Shape(graphics);
-  bttn.setBounds(x,y,bw, bh); // The button was also given bounds which might be used for hit detection in the future
   bttn.x = x;
   bttn.y = y;
   bttn.name = 'Button';
@@ -524,7 +575,7 @@ function drawButton(x, y){
 
 }
 
-// Returns a new randomly generated squigily bolt of lightning
+// Returns a new randomly generated squiggly bolt of lightning, very, very frightening me
 function drawBolt(x, y, w){
 
   // Create a graphics object
@@ -536,7 +587,7 @@ function drawBolt(x, y, w){
   var zapx = [0];
   var zapy = [0];
 
-  // While the total length of the line is less that the above width w, a random length with a random y value are added to the line arrays
+  // While the total length of the line is less that the given width w, a random length and a random y value are added to the line arrays
   // https://stackoverflow.com/questions/1230233/how-to-find-the-sum-of-an-array-of-numbers
   while (zapx.reduce(function(acc, val) { return acc + val; }, 0) < w){
     // The value of 20 was chosen by trial and error, may need to be changed or even made an input of the function
@@ -544,7 +595,7 @@ function drawBolt(x, y, w){
     zapy.push(-(Math.random()*20));
   }
 
-  // This should remove any overflow of the specified width from the line 
+  // While the line is longer than the given width, remove a line segment. This should remove any overflow caused by the condition of the above while loop. I preume it shuold only be one extra segement but this is just to be sure to be sure
   while (zapx.reduce(function(acc, val) { return acc + val; }, 0) > w){
     zapx.pop();
   }
@@ -554,14 +605,14 @@ function drawBolt(x, y, w){
   zapy.push(0);
 
   // For all the line segments build up a continuous electric line 
-  // A line is drawn from temp to temp + the next random length, then the random length is added to temp so the next section of line will start from the same point
+  // A line is drawn from temp to temp + the next random length, then the random length is added to temp so the next section of line will start from the next point
   var temp = zapx[0];
   for (var i = 0; i < zapx.length; i++) {
     graphics.moveTo(temp,zapy[i]).lineTo(temp+zapx[i],zapy[i+1]);
     temp += zapx[i];
   }
 
-  // The object is then shifted to the specified x,y and given a name
+  // The object is moved to the given point, given a name and returned
   var bolt = new createjs.Shape(graphics);
   bolt.x = x;
   bolt.y = y;
@@ -571,15 +622,15 @@ function drawBolt(x, y, w){
 
 }
 
-// Returns a large spike shape which must be added to either the stage or a container
+// Returns a large spike shape 
 function drawSpike(x, y, w, h){
 
-  // Create a new graphics object at the 'centered' 0,0
+  // Create a new graphics object centered at 0,0
   var graphics = new createjs.Graphics();
   graphics.beginFill('#BBBBBB');
   graphics.moveTo(0,0).lineTo(w/2,h).lineTo(-w/2,h).closePath();
 
-  // The object is then shifted to the specified x,y
+  // The object is moved to the given point, given a name and returned
   var spike = new createjs.Shape(graphics);
   spike.x = x;
   spike.y = y;
@@ -592,14 +643,13 @@ function drawSpike(x, y, w, h){
 // Returns a Mashy Spike Plate, straight from the boys down at Aperture Science
 function drawMSP(x, y){
 
-  var pw = grphState.simonSize/4; // Plate Height and Arm Width
-
   // Create a new graphics object
+  var pw = grphState.simonSize/4; // Plate Height and Arm Width
   var graphics = new createjs.Graphics();
   graphics.beginFill('#BBBBBB');
   
   // MSP Arm 
-  // Note the arm is as long as the room so that when it extends it can reach far enough
+  // Note the arm is as long as the room so that when it extends it can reach far enough, stop changing it back to pillar height!
   graphics.rect((grphState.pillarW/2)-(pw/2),0,pw, grphState.roomH);
   
   // MSP Plate
@@ -617,7 +667,7 @@ function drawMSP(x, y){
     start += step;
   }
   
-  // The object is then shifted to the specified x,y and given a name
+  // The object is moved to the given point, given a name and returned
   var msp = new createjs.Shape(graphics);
   msp.x = x;
   msp.y = y;
@@ -627,14 +677,40 @@ function drawMSP(x, y){
 
 }
 
-// This small function removes lightning from the hazards container, it needs to be a function so that when the Up animation ends it can remove the last bolt
-function lightningStriker(){
+// Returns a textbox the width and height of the entered text 
+function drawTextbox(text, x, y){
 
-  for (var i=hazards.children.length - 1; i>=0; i--) {
-    var hchild = hazards.getChildAt(i);
-    if (hchild.name == 'Bolt'){
-      hazards.removeChild(hchild);
-    } 
-  }
-  
+  // The fontsize is dynamic using the graphics multiplier 
+  var fontSize = 40*grphState.mult;
+
+  // The max width of the textbox is set to the max screen width with a little chopped off each side
+  var maxline = grphState.winW - grphState.winW/8;
+
+  // A new text object is made with the dynamic font size and line width
+  var text = new createjs.Text(text, fontSize+'px Courier', '#FFFFFF');
+  text.lineWidth = maxline;
+  text.lineHeight = fontSize;
+  text.textAlign = 'center';
+
+  // The bounds of the text object are calculated to use when creating the box
+  text.getBounds();
+  text.x = text._rectangle.width/2; // Since the text is centered at 0,0 it moves so the left is at 0,0
+  var bw = text._rectangle.width + (fontSize/2);
+  var bh = text._rectangle.height + (fontSize/2);
+
+  // A graphics object is made the size and shape of the text with some padding
+  var graphics = new createjs.Graphics()
+  graphics.beginFill('rgba(0,0,0,0.75)');
+  graphics.rect(-fontSize/4, -fontSize/4, bw, bh);
+  var box = new createjs.Shape(graphics)
+
+  // The text and the box are added to the same container, centered on the given point and returned
+  var textbox = new createjs.Container();
+  textbox.addChild(box);
+  textbox.addChild(text);
+  textbox.x = x - bw/2;
+  textbox.y = y - bh/2;
+
+  return textbox;
+
 }

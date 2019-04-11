@@ -8,7 +8,7 @@ var gameState = {
   hazdMoves:[], 
   typeMovesTrack:[],
   typeMoveQ:[], 
-  validMoves:["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"]};
+  validMoves:['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']};
 
 // Function returns a random move
 // It generates a random number between 0 and 3 and returns a move based on that number
@@ -28,10 +28,10 @@ function nextmoveRandom() {
     // move = 'ArrowDown';
     move = 'ArrowDown';
   } else if (num == 2) {
-    // move = 'ArrowUp';
+    // move = 'ArrowDown';
     move = 'ArrowLeft';
   } else {
-    // move = 'ArrowUp';
+    // move = 'ArrowDown';
     move = 'ArrowRight';
   }
   return move;
@@ -41,7 +41,7 @@ function nextmoveRandom() {
 // Function used to start game with given number of moves
 function gameStart(num){
 
-  console.log("New Game");
+  console.log('New Game');
 
   // Clearing gameState arrays
   gameState.userMoves = [];
