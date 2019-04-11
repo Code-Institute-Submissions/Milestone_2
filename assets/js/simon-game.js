@@ -19,7 +19,7 @@ function keyDownHandler(e) {
 
   // If the Space button is pressed the game is restarted
   if (e.code == 'Space'){
-    gameStart(3);
+    gameStart(1);
     startFlag = true;
   }
 
