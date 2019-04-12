@@ -22,16 +22,16 @@ function nextmoveRandom() {
   var num = parseInt((Math.random() * 4));
   var move;
   if (num == 0) {
-    // move = 'ArrowDown';
+    // move = 'ArrowLeft';
     move = 'ArrowUp';
   } else if (num == 1) {
-    // move = 'ArrowDown';
+    // move = 'ArrowLeft';
     move = 'ArrowDown';
   } else if (num == 2) {
-    // move = 'ArrowDown';
+    // move = 'ArrowLeft';
     move = 'ArrowLeft';
   } else {
-    // move = 'ArrowDown';
+    // move = 'ArrowLeft';
     move = 'ArrowRight';
   }
   return move;
@@ -44,12 +44,7 @@ function gameStart(num){
   console.log('New Game');
 
   // Clearing gameState arrays
-  gameState.userMoves = [];
-  gameState.userMovesQ = [];
-  gameState.gameMoves = [];
-  gameState.typeMoves = []; 
-  gameState.typeMovesTrack = [];
-  gameState.typeMoveQ = []; 
+  gameReset(); 
 
   // Adding number of moves to game arrays
   for (let i = 0; i < num; i++) {
@@ -98,7 +93,7 @@ function gameCheck(move){
   // Checks that the latest entered move is the same as latest generated move
   // If they are not the game ends and the startFlag is reset 
   else if (um[move] != gm[move]){
-    gameOver();
+    gameOver(dialogue.go);
   }
   
   // If the check is passed and the length of the two arrays are equal then userMoves is reset and one extra move it added to gameMoves
@@ -131,15 +126,22 @@ function gameOverflow(){
 
 // This function ends and resets the game. 
 function gameOver(){
-
-  alert('Game Over - Press Space to start again');
+  gameOverGraphics();
+  // alert('Game Over - Press Space to start again');
   startFlag = false;
+  
+  gameReset()
+
+}
+
+function gameReset(){
   // Clearing gameState arrays
+  gameState.userMoveCount = 0;
   gameState.userMoves = [];
-  gameState.userMovesQ = [];
+  gameState.userMovesQ = []; 
   gameState.gameMoves = [];
   gameState.typeMoves = []; 
+  gameState.hazdMoves = []; 
   gameState.typeMovesTrack = [];
-  gameState.typeMoveQ = []; 
-
+  gameState.typeMoveQ = [];
 }

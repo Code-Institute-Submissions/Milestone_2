@@ -68,11 +68,15 @@ var dialogue = {
   9: ['It will all be over soon'],
   12: ['You have come far Simon', 'Don\'t let me distract you'],
   14: ['Maybe soon I might let you out of here', 'Or not'],
-  15: ['Just keep doing what I say Simon', 'Just do', 'What', 'I', 'Say']
+  15: ['Just keep doing what I say Simon', 'Just do', 'What', 'I', 'Say'],
+  go: ['I\'m sorry Simon, you need to do exactly what I say if you want to make out of here alive'],
+  gr: ['Now Simon, did I tell you to change the size of the browser?'],
+  ld: ['The game is better in landscape,\njust do what I say and flip the device']
 };
 
 // Global flags to monitor game state
 var animationFlag = false;
+var tickStopFlag = false;
 var buttonFlag = false;
 var zapFlag = false;
 
@@ -81,29 +85,31 @@ function initialize() {
 
   // Listener for canvas resize
   window.addEventListener('resize', resizeCanvas, false);
+
+  // Start animation ticker
+  createjs.Ticker.framerate = (60);
+  createjs.Ticker.addEventListener('tick', loopDraw);
+  createjs.MotionGuidePlugin.install();
   
   // Initialize the canvas on first loading the page
   resizeCanvas();
-  
+
   // Initial Draw
   // Splash screen should always try to show the button at the end so it is set to max pillarNum -1
   if (grphState.pillarNum > 3){
-    initDraw(grphState.pillarNum-1);
+    initDraw(grphState.pillarNum - 1);
   }
   // If it can't, then draw the minimum of 3
   else{
     initDraw(3);
   }
 
-  // Start animation ticker
-  createjs.Ticker.framerate = (60);
-  createjs.Ticker.addEventListener('tick', loopDraw);
-  createjs.MotionGuidePlugin.install();
 }
 
 // Functions used to dynamically resize the canvas to the device size, Runs each time the DOM window resize event fires.
 // http://htmlcheats.com/html/resize-the-html5-canvas-dyamically/
 function resizeCanvas() {
+
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
 
@@ -112,36 +118,82 @@ function resizeCanvas() {
 
   // It's brutal but for the moment if the game has started it forces a gameover as it is difficult to recalculate the locations of everything on the fly and maintain the gamestate. If the game hasn't started then the room is drawn normally 
   if (startFlag){
+    alert(dialogue.gr);
     gameOver();
-    initDraw(7); // Same hard coded future splash screen
-  }
-  else{
-    initDraw(grphState.pillarArray.length);
+    initDraw(grphState.pillarNum - 1); 
   }
 
+  else{
+    // Initial Draw
+    // Splash screen should always try to show the button at the end so it is set to max pillarNum -1
+    if (grphState.pillarNum > 3){
+      initDraw(grphState.pillarNum - 1);
+    }
+    // If it can't, then draw the minimum of 3
+    else{
+      initDraw(3);
+    }
+  }
 
 }
 
 // Draw function used to 'set the stage'
 function initDraw(num){
 
-  // Start by clearing whatever is already on the stage
-  stage.removeAllChildren();
+  // If after a resize or on inital load the room does not quite fit into the browser window or the room is too small this scales up or down everything using the multiplier 
+  while (grphState.winH <= (grphState.roomH*2)){
+    grphState.mult -= 0.05;
+  }
 
-  // Generate a room, this should be changed for a splash screen in future
-  generateRoom(num);
+  while (grphState.roomH*2 <= grphState.winH){
+    grphState.mult += 0.05;
+  }
+  // If the screen is taller than it is wide (ie portrait) the screen is cleared, the event ticker is stopped and the user is told the site works better in landscape 
+  if (grphState.winW < grphState.winH){
+    
+    // The ticker is stopped
+    createjs.Ticker.removeEventListener('tick', loopDraw);
+    tickStopFlag = true;
+    
+    // Once everything is cleared a textbox is drawn to tell the player to rotate to landscape 
+    graphicsRestart();
+    var textbox = drawTextbox(dialogue.ld, 40, grphState.winW/2, grphState.winH*0.75);
+    stage.addChild(textbox);
+    stage.update();
+  }
+  // If the screen is in portrait then carry on
+  else{
 
-  // Calculate the position of simon for the center of the first pillar of the room
-  // Note: most of the time since simon's x position is relative to his center and the pillar is generated from the top left, half a pillar width has to be added or accounted for 
-  var simonX = grphState.pillarArray[0]+grphState.pillarW/2;
-  var simonY = grphState.pillarH + grphState.roomH;
-  
-  // Draw the generated room, simon and add them both to the stage
-  drawRoom();
-  simon = drawSimon(simonX, simonY);
-  stage.addChild(simon);
-  stage.addChild(room);
-  stage.update();
+    // If the tick eventlistener has stopped, restart it
+    if (tickStopFlag){
+      createjs.Ticker.addEventListener('tick', loopDraw);
+    }
+
+    // Start to draw by clearing anything that's already there 
+    graphicsRestart();
+
+    // Generate a room
+    generateRoom(num);
+
+    // Calculate the position of simon for the center of the first pillar of the room
+    // Note: most of the time since simon's x position is relative to his center and the pillar is generated from the top left, half a pillar width has to be added or accounted for 
+    var simonX = grphState.pillarArray[0]+grphState.pillarW/2;
+    var simonY = grphState.pillarH + grphState.roomH;
+
+    // Display a title and instructions to start
+    var titlebox = drawTextbox('Simon', 120, grphState.winW/2, grphState.winH/4)
+    var textbox = drawTextbox('Press space or tap to start', 40, grphState.winW/2, grphState.winH/2)
+
+    // Draw the generated room, simon and add them both to the stage
+    drawRoom();
+    simon = drawSimon(simonX, simonY);
+    stage.addChild(simon);
+    stage.addChild(room);
+    stage.addChild(titlebox);
+    stage.addChild(textbox);
+
+  }
+
 }
 
 // This is the main loop of the game and is ticked using the EventListener started in the initialize function above. As of now it contains everything that happens in the game. Once the room is generated and stage set, it watches for when a move is made by the player, that move and it's type is added to the game queue and then processed as either a pillar jump move or a hazard move. Those moves are then checked and animated. 
@@ -152,12 +204,10 @@ function loopDraw(){
 
   // If a new pillar has been added or the button has been pushed the room is redrawn
   // In the if condition: -4 is minus 2 walls, the button and the hazard container
-  if ((grphState.pillarArray.length != (room.children.length - 4)/2) || buttonFlag == true){
-    
-    // Clear everything before restarting
-    stage.removeAllChildren();
-    room.removeAllChildren();
-    hazards.removeAllChildren();
+  if ((grphState.pillarArray.length != (room.children.length - 4)/2)|| buttonFlag){
+
+    // Clear all the graphics containers
+    graphicsRestart();
 
     // Resets the button and animation flags and resets the move counter
     buttonFlag = false;
@@ -170,8 +220,7 @@ function loopDraw(){
     grphState.pillarNumCount = 0;
 
     // Draw the room, simon and add them to the stage
-    drawRoom();
-    room.regX = 0; // This re-centers the room if it was scrolled previously 
+    drawRoom(); 
     simon = drawSimon(simonX, simonY);
     stage.addChild(simon);
     stage.addChild(room);
@@ -183,7 +232,7 @@ function loopDraw(){
       var textArray = dialogue[rn];
       for (var i = 0; i < textArray.length; i++) {
         // A textbox is generated, its visibility set to zero then faded in at the right time
-        var text = drawTextbox(textArray[i],grphState.cent, grphState.pillarH/2);
+        var text = drawTextbox(textArray[i], 40, grphState.cent, grphState.pillarH/2);
         text.alpha = 0;
         stage.addChild(text);
         // Fade text animation
@@ -194,7 +243,6 @@ function loopDraw(){
           .to({alpha:0}, 200);
       }
     }
-
 
     stage.update();
   }
@@ -227,7 +275,11 @@ function loopDraw(){
         console.log('ButtonPressed');
         animationFlag = true; // Animation Flag is set
         // After a pause the game resets
-        setTimeout(function(){buttonFlag = true; gameCheck(); console.log('Next Level');}, 500);
+        setTimeout(function(){
+          if (startFlag){
+          buttonFlag = true; 
+          gameCheck(); 
+          console.log('Next Level');}}, 600);
       }
     }
   }
@@ -268,7 +320,7 @@ function loopDraw(){
       move = move.replace('Arrow','');
 
       // Create a textbox, add it to the stage and then display it for half a second
-      var text = drawTextbox(move,pe,th);
+      var text = drawTextbox(move, 40, pe, th);
       stage.addChild(text); 
       createjs.Tween.get(text)
         .wait(500)
@@ -302,87 +354,142 @@ function loopDraw(){
     var rh = grphState.roomH; // Room Height
 
     // If the move is an up, simon jumps up  
-    if (gameState.userMoves[pi].includes('Up')){
+    if (gameState.gameMoves[pi].includes('Up')){
       zapFlag = true; // Starts the electric bolts
-      createjs.Tween.get(simon)
-        .to({y: ph-(rh/4)}, 100)
-        .to({y: ph}, 200)
-      .call(function(){
-        animationFlag = false;
-        zapFlag = false;
-        lightningStriker();
-        gameCheck(gameState.userMoveCount);
-        gameState.userMoveCount++;});
+
+      // If the user move matches the game move then simon avoids the hazard
+      if (gameState.userMoves[pi].includes('Up')){
+        createjs.Tween.get(simon)
+          .to({y: ph-(rh/4)}, 100)
+          .to({y: ph}, 200)
+          .call(function(){
+            animationFlag = false;
+            zapFlag = false;
+            lightningStriker();
+            gameCheck(gameState.userMoveCount);
+            gameState.userMoveCount++;});
+      }
+
+      // Otherwise the hazard animates and gameover is initiated
+      else{
+        setTimeout(function(){
+          animationFlag = false;
+          zapFlag = false;
+          lightningStriker();
+          gameCheck(gameState.userMoveCount);}, 200);
+      }
     }
+
     // If the move is a down, simon ducks
-    else if (gameState.userMoves[pi].includes('Down')){
+    else if (gameState.gameMoves[pi].includes('Down')){
       var ah = grphState.pillarH - grphState.roomH; // Arm height
       hazards.addChild(drawMSP(grphState.pillarArray[pn], ah));
       var hi = hazards.children.length - 1; // Hazard Index
-      // Animate the Mashy Spike Plate
-      createjs.Tween.get(hazards.children[hi])
-        .to({regY:-rh + grphState.simonSize/2}, 120)
-        .wait(200)
-        .to({regY:0}, 180);
-      // Animate simon
-      createjs.Tween.get(simon)
-        .to({scaleY: 0.25}, 100) // <- Ducks 1/4 height
-        .wait(200)
-        .to({scaleY: 1}, 200)
-        .wait(100)
-      .call(function(){
-        animationFlag = false;
-        gameCheck(gameState.userMoveCount);
-        gameState.userMoveCount++;});
+
+      // If the user move matches the game move then simon avoids the hazard
+      if (gameState.userMoves[pi].includes('Down')){ 
+        // Animate the Mashy Spike Plate
+        createjs.Tween.get(hazards.children[hi])
+          .to({regY:-rh + grphState.simonSize/2}, 120)
+          .wait(200)
+          .to({regY:0}, 180);
+        // Animate simon
+        createjs.Tween.get(simon)
+          .to({scaleY: 0.25}, 100) // <- Ducks 1/4 height
+          .wait(200)
+          .to({scaleY: 1}, 200)
+          .wait(100)
+          .call(function(){
+          animationFlag = false;
+          gameCheck(gameState.userMoveCount);
+          gameState.userMoveCount++;});
+      }
+
+      // Otherwise the hazard animates and gameover is initiated
+      else{
+        // Animate the Mashy Spike Plate
+        createjs.Tween.get(hazards.children[hi])
+          .to({regY:-rh + grphState.simonSize}, 120)
+          .call(function(){
+            animationFlag = false;
+            gameCheck(gameState.userMoveCount);});
+      }
+
     }
     // If the move is a left, simon dodges left
-    else if (gameState.userMoves[pi].includes('Left')){
+    else if (gameState.gameMoves[pi].includes('Left')){
       var sx = grphState.pillarArray[pn] + (grphState.pillarW*0.66); // Spike x
       hazards.addChild(drawSpike(sx, ph, pw/4, grphState.simonSize));
       var hi = hazards.children.length - 1; // Hazard Index
-      // Animate the Spike
-      createjs.Tween.get(hazards.children[hi])
-        .to({regY:grphState.simonSize}, 120)
-        .wait(200)
-        .to({regY:0}, 120);
-      // Animate simon
-      createjs.Tween.get(simon)
-        .to({regX: (pw/2)}, 100)
-        .wait(200)
-        .to({regX: 0}, 200)
-        .wait(100)
-      .call(function(){
-        animationFlag = false;
-        gameCheck(gameState.userMoveCount);
-        gameState.userMoveCount++;});
+
+      // If the user move matches the game move then simon avoids the hazard
+      if (gameState.userMoves[pi].includes('Left')){ 
+        // Animate the Spike
+        createjs.Tween.get(hazards.children[hi])
+          .to({regY:grphState.simonSize}, 120)
+          .wait(200)
+          .to({regY:0}, 120);
+        // Animate simon
+        createjs.Tween.get(simon)
+          .to({regX: (pw/2)}, 100)
+          .wait(200)
+          .to({regX: 0}, 200)
+          .wait(100)
+          .call(function(){
+            animationFlag = false;
+            gameCheck(gameState.userMoveCount);
+            gameState.userMoveCount++;});
+      }
+
+      // Otherwise the hazard animates and gameover is initiated
+      else{
+        // Animate the Spike
+        createjs.Tween.get(hazards.children[hi])
+          .to({regY:grphState.simonSize}, 120)
+          .call(function(){
+            animationFlag = false;
+            gameCheck(gameState.userMoveCount);});
+      }
     }
     // If the move is a right, simon dodges right
-    else if (gameState.userMoves[pi].includes('Right')){
+    else if (gameState.gameMoves[pi].includes('Right')){
       var sx = grphState.pillarArray[pn] + (grphState.pillarW*0.33); // Spike x
       hazards.addChild(drawSpike(sx, ph, pw/4, grphState.simonSize));
       var hi = hazards.children.length - 1; // Hazard Index
-      // Animate the Spike
-      createjs.Tween.get(hazards.children[hi])
-        .to({regY:grphState.simonSize}, 120)
-        .wait(200)
-        .to({regY:0}, 120);
-      // Animate simon
-      createjs.Tween.get(simon)
-        .to({regX: -(pw/2)}, 100)
-        .wait(200)
-        .to({regX: 0}, 200)
-        .wait(100)
-      .call(function(){
-        animationFlag = false;
-        gameCheck(gameState.userMoveCount);
-        gameState.userMoveCount++;});
-    }
 
-    // The game is checked for gameover
-    gameCheck(gameState.userMoveCount);
+      // If the user move matches the game move then simon avoids the hazard
+      if (gameState.userMoves[pi].includes('Right')){ 
+        // Animate the Spike
+        createjs.Tween.get(hazards.children[hi])
+          .to({regY:grphState.simonSize}, 120)
+          .wait(200)
+          .to({regY:0}, 120);
+        // Animate simon
+        createjs.Tween.get(simon)
+          .to({regX: -(pw/2)}, 100)
+          .wait(200)
+          .to({regX: 0}, 200)
+          .wait(100)
+          .call(function(){
+            animationFlag = false;
+            gameCheck(gameState.userMoveCount);
+            gameState.userMoveCount++;});
+      }
+
+      // Otherwise the hazard animates and gameover is initiated
+      else{
+        // Animate the Spike
+        createjs.Tween.get(hazards.children[hi])
+          .to({regY:grphState.simonSize}, 120)
+          .call(function(){
+            animationFlag = false;
+            gameCheck(gameState.userMoveCount);});
+      }
+    }
 
     // The completed move is removed from the move queue
     gameState.typeMoveQ.shift();
+  
   }
 
   // Once the electricity has been started by the Up move a bolt is added, then every tick the bolt is removed and a newly generated bolt is added 
@@ -464,6 +571,15 @@ function lightningStriker(){
   
 }
 
+// This small function clears all the graphics containers for when the canvas needs to be cleared
+function graphicsRestart(){
+  // Clear everything before restarting
+  stage.removeAllChildren();
+  room.removeAllChildren();
+  hazards.removeAllChildren();
+  room.regX = 0; // This re-centers the room if it was scrolled previously
+}
+
 // This function clears the room and redraws a generated room
 function drawRoom(){
 
@@ -476,7 +592,7 @@ function drawRoom(){
   // Button first so that it animates behind things
   room.addChild(drawButton((grphState.pillarArray[pn-1]+(grphState.pillarW/2)), grphState.pillarH + grphState.roomH));
 
-  // Same with the hazards containter
+  // Same with the hazards container
   room.addChild(hazards);
 
   // Top Pillars
@@ -492,7 +608,7 @@ function drawRoom(){
   // Left Wall
   room.addChild(drawWall(0,0,grphState.pillarStart+5, grphState.winH, 'LeftWall'));
   // Right Wall
-  room.addChild(drawWall(grphState.rWallX,0,1000, grphState.winH, 'RightWall'));
+  room.addChild(drawWall(grphState.rWallX,0,2000, grphState.winH, 'RightWall'));
 
 }
 
@@ -678,10 +794,10 @@ function drawMSP(x, y){
 }
 
 // Returns a textbox the width and height of the entered text 
-function drawTextbox(text, x, y){
+function drawTextbox(text, fs, x, y){
 
   // The fontsize is dynamic using the graphics multiplier 
-  var fontSize = 40*grphState.mult;
+  var fontSize = fs*grphState.mult;
 
   // The max width of the textbox is set to the max screen width with a little chopped off each side
   var maxline = grphState.winW - grphState.winW/8;
@@ -695,13 +811,13 @@ function drawTextbox(text, x, y){
   // The bounds of the text object are calculated to use when creating the box
   text.getBounds();
   text.x = text._rectangle.width/2; // Since the text is centered at 0,0 it moves so the left is at 0,0
-  var bw = text._rectangle.width + (fontSize/2);
-  var bh = text._rectangle.height + (fontSize/2);
+  var bw = text._rectangle.width + (text._rectangle.height/5);
+  var bh = text._rectangle.height + (text._rectangle.height/10);
 
   // A graphics object is made the size and shape of the text with some padding
   var graphics = new createjs.Graphics();
-  graphics.beginFill('rgba(0,0,0,0.75)');
-  graphics.rect(-fontSize/4, -fontSize/4, bw, bh);
+  graphics.beginFill('#000000');
+  graphics.rect(-(text._rectangle.height/10), -(text._rectangle.height/10), bw, bh);
   var box = new createjs.Shape(graphics);
 
   // The text and the box are added to the same container, centered on the given point and returned
@@ -712,5 +828,37 @@ function drawTextbox(text, x, y){
   textbox.y = y - bh/2;
 
   return textbox;
+
+}
+
+// This function animates the gameover, it fades the screen to black and displays the gameover text
+function gameOverGraphics(){
+
+    // Create a new graphics object at 0,0
+    var graphics = new createjs.Graphics();
+    graphics.beginFill('#000000');
+    graphics.rect(0, 0, grphState.winW, grphState.winH);
+    var curtains = new createjs.Shape(graphics);
+    
+    // Set the curtain to be transparent then fade in 
+    curtains.alpha = 0; 
+    stage.addChild(curtains);
+    createjs.Tween.get(curtains)
+      .to({alpha:1}, 100);
+
+    // A textbox is generated, its visibility set to zero then faded in  
+    var textbox = drawTextbox(dialogue.go, 40, grphState.winW/2, grphState.winH/2);
+    textbox.alpha = 0;
+    stage.addChild(textbox);
+    // Fade text animation
+    createjs.Tween.get(textbox)
+      .wait(1000)
+      .to({alpha:1}, 1000)
+      .wait(3000)
+      .to({alpha:0}, 200)
+      .wait(1000)
+      .call(function(){
+        if (startFlag == false){
+        initDraw(grphState.pillarNum-1);}});
 
 }
