@@ -7,7 +7,9 @@ var room = new createjs.Container();
 var hazards = new createjs.Container();
 var simon; // simon is a global object so he's easier to keep track of
 
-
+// Using the body-scroll-lock library to lock the canvas so that on iOS devices the game doesn't overscroll
+bodyScrollLock.disableBodyScroll(canvas);
+  
 // startFlag is used to trigger the game on and off
 var startFlag = false;
 

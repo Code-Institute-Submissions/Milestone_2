@@ -130,7 +130,7 @@ function gameOver(){
   // alert('Game Over - Press Space to start again');
   startFlag = false;
   
-  gameReset()
+  gameReset();
 
 }
 
