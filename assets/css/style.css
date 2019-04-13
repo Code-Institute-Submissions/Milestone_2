@@ -1,18 +1,21 @@
 /* Milestone 2 Styles*/
 
-* { padding: 0; margin: 0; }
-
-body { 
-    overflow: hidden;
-    width:100%;
-    height:100%;
+* {
+    margin: 0;
+    padding: 0;
 }
 
-canvas { 
-    background: #eeeeee; 
+body {
+    height:100%;
+    overflow: hidden;
+    width:100%;
+}
+
+canvas {
+    background: #eeeeee;
     display: block;
     /*top:0;*/
     /*left:0; */
-    width: 100%;
     height: 100%;
+    width: 100%;
 }

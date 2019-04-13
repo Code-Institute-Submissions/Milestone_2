@@ -1,11 +1,21 @@
-// https://www.waitingforfriday.com/?p=586 - How Simon works 
+// Letting JSHint know that everything is ok
+/*jslint node: true */
+/*jshint browser: true */
+"use strict";
+/*global createjs*/
+/*global bodyScrollLock*/
+/*global Hammer*/
+/*global gameStart*/
+/*global gameState*/
+/*global initialize*/
 
+// https://www.waitingforfriday.com/?p=586 - How Simon works
 // Initializing the game Canvas and Stage
 var canvas = document.getElementById("maincanvas");
 var stage = new createjs.Stage(canvas);
 var room = new createjs.Container();
 var hazards = new createjs.Container();
-var simon; // simon is a global object so he's easier to keep track of
+var simon = {}; // simon is a global object so he's easier to keep track of
 
 // startFlag is used to trigger the game on and off
 var startFlag = false;
@@ -26,7 +36,7 @@ manager.add(Swipe);
 manager.add(tap1);
 manager.add(tap2);
 
-// If you want to recognize both a single and double tap separately then the two events need to be recognized together and a single tap execute when a double tap fails 
+// If you want to recognize both a single and double tap separately then the two events need to be recognized together and a single tap execute when a double tap fails
 manager.get('doubletap').recognizeWith('singletap');
 manager.get('singletap').requireFailure('doubletap');
 
@@ -34,7 +44,7 @@ manager.get('singletap').requireFailure('doubletap');
 function keyDownHandler(e) {
 
   // console.log(e.code);
-  var moveFlag = false; 
+  var moveFlag = false;
 
   // If the Space button is pressed the game is restarted
   if (e.code === 'Space'){

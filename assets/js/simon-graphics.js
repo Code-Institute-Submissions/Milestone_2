@@ -1,7 +1,24 @@
+// Letting JSHint know that everything is ok
+/*jslint node: true */
+/*jshint browser: true */
+"use strict";
+/*global window*/
+/*global createjs*/
+/*global canvas*/
+/*global startFlag*/
+/*global stage*/
+/*global simon:true*/
+/*global room*/
+/*global gameOverflow*/
+/*global gameState*/
+/*global gameCheck*/
+/*global hazards*/
+/*global gameOverflow*/
+
 // This object is used to track the graphical state of the game
 // All graphical sizes should be relative to simon so that if needs be in the future the game can be scaled using the multiplier factor
 var grphState = {
-  // The browser window width and height are used for relative values 
+  // The browser window width and height are used for relative values
   // They need to be set using an EventListener outside the object
   winW:1,
   winH:1,
@@ -9,30 +26,30 @@ var grphState = {
   get cent(){
     return this.winW/2;},
 
-  mult:1, 
+  mult:1,
   get simonSize(){
     return 100 * this.mult;},
-  
+
   // How tall the room relative to simon
   get roomH(){
     return this.simonSize * 4;}, // <- 4 times simons height
 
-  // The height of the button 
+  // The height of the button
   get buttonH(){
     return this.simonSize/4;}, // <- 1/4 simons height
 
   get buttonW(){
     return this.simonSize*1.2;}, // <- 1/5 bigger than simons width
-  
+
   // How wide the pillar is relative to simon
   get pillarW(){
     return this.simonSize * 2;}, // <- 2 times as wide as simon
-  
+
   // This value is set depending on the browser height
   get pillarH(){
     return (this.winH-this.roomH)/2;},
 
-  // pillarGap is the relative size of the gap between pillars 
+  // pillarGap is the relative size of the gap between pillars
   pillarGapR:0.5, // <- 1/2 the pillar width
   get pillarGapW(){
     return this.pillarGapR*this.pillarW;},
@@ -42,7 +59,7 @@ var grphState = {
     return this.pillarW + this.pillarGapW;},
 
   // This value is the maximum number of pillars that could fit on the screen
-  // The value is used to calculate if the game room needs to be centered on the screen 
+  // The value is used to calculate if the game room needs to be centered on the screen
   get pillarNum(){
     return Math.ceil(this.winW/(this.pillarWGapW));},
 
@@ -90,7 +107,7 @@ function initialize() {
   createjs.Ticker.framerate = (60);
   createjs.Ticker.addEventListener('tick', loopDraw);
   createjs.MotionGuidePlugin.install();
-  
+
   // Initialize the canvas on first loading the page
   resizeCanvas();
 
@@ -116,11 +133,10 @@ function resizeCanvas() {
   grphState.winW = window.innerWidth;
   grphState.winH = window.innerHeight;
 
-  // It's brutal but for the moment if the game has started it forces a gameover as it is difficult to recalculate the locations of everything on the fly and maintain the gamestate. If the game hasn't started then the room is drawn normally 
+  // It's brutal but for the moment if the game has started it forces a gameover as it is difficult to recalculate the locations of everything on the fly and maintain the gamestate. If the game hasn't started then the room is drawn normally
   if (startFlag){
-    alert(dialogue.gr);
-    gameOver();
-    initDraw(grphState.pillarNum - 1); 
+    window.gameOver();
+    initDraw(grphState.pillarNum - 1);
   }
 
   else{
@@ -140,7 +156,7 @@ function resizeCanvas() {
 // Draw function used to 'set the stage'
 function initDraw(num){
 
-  // If after a resize or on inital load the room does not quite fit into the browser window or the room is too small this scales up or down everything using the multiplier 
+  // If after a resize or on inital load the room does not quite fit into the browser window or the room is too small this scales up or down everything using the multiplier
   while (grphState.winH <= (grphState.roomH*2)){
     grphState.mult -= 0.05;
   }
@@ -148,14 +164,14 @@ function initDraw(num){
   while (grphState.roomH*2 <= grphState.winH){
     grphState.mult += 0.05;
   }
-  // If the screen is taller than it is wide (ie portrait) the screen is cleared, the event ticker is stopped and the user is told the site works better in landscape 
+  // If the screen is taller than it is wide (ie portrait) the screen is cleared, the event ticker is stopped and the user is told the site works better in landscape
   if (grphState.winW < grphState.winH){
-    
+
     // The ticker is stopped
     createjs.Ticker.removeEventListener('tick', loopDraw);
     tickStopFlag = true;
-    
-    // Once everything is cleared a textbox is drawn to tell the player to rotate to landscape 
+
+    // Once everything is cleared a textbox is drawn to tell the player to rotate to landscape
     graphicsRestart();
     var titlebox = drawTextbox('Simon', 120, grphState.winW/2, grphState.winH/4);
     var textbox = drawTextbox(dialogue.ld, 40, grphState.winW/2, grphState.winH*0.75);
@@ -171,20 +187,20 @@ function initDraw(num){
       createjs.Ticker.addEventListener('tick', loopDraw);
     }
 
-    // Start to draw by clearing anything that's already there 
+    // Start to draw by clearing anything that's already there
     graphicsRestart();
 
     // Generate a room
     generateRoom(num);
 
     // Calculate the position of simon for the center of the first pillar of the room
-    // Note: most of the time since simon's x position is relative to his center and the pillar is generated from the top left, half a pillar width has to be added or accounted for 
+    // Note: most of the time since simon's x position is relative to his center and the pillar is generated from the top left, half a pillar width has to be added or accounted for
     var simonX = grphState.pillarArray[0]+grphState.pillarW/2;
     var simonY = grphState.pillarH + grphState.roomH;
 
     // Display a title and instructions to start
     var titlebox = drawTextbox('Simon', 120, grphState.winW/2, grphState.winH/4);
-    var textbox = drawTextbox('Press space or tap to start', 40, grphState.winW/2, grphState.winH/2);
+    var textbox = drawTextbox('Press space or double tap to start', 40, grphState.winW/2, grphState.winH/2);
 
     // Draw the generated room, simon and add them both to the stage
     drawRoom();
@@ -198,15 +214,15 @@ function initDraw(num){
 
 }
 
-// This is the main loop of the game and is ticked using the EventListener started in the initialize function above. As of now it contains everything that happens in the game. Once the room is generated and stage set, it watches for when a move is made by the player, that move and it's type is added to the game queue and then processed as either a pillar jump move or a hazard move. Those moves are then checked and animated. 
+// This is the main loop of the game and is ticked using the EventListener started in the initialize function above. As of now it contains everything that happens in the game. Once the room is generated and stage set, it watches for when a move is made by the player, that move and it's type is added to the game queue and then processed as either a pillar jump move or a hazard move. Those moves are then checked and animated.
 function loopDraw(){
 
-  // Just before the loop runs, if the user inputs more moves than game moves this ensures that they are removed before they cause trouble 
+  // Just before the loop runs, if the user inputs more moves than game moves this ensures that they are removed before they cause trouble
   gameOverflow();
 
   // If a new pillar has been added or the button has been pushed the room is redrawn
   // In the if condition: -4 is minus 2 walls, the button and the hazard container
-  if ((grphState.pillarArray.length != (room.children.length - 4)/2)|| buttonFlag){
+  if ((grphState.pillarArray.length !== (room.children.length - 4)/2)|| buttonFlag){
 
     // Clear all the graphics containers
     graphicsRestart();
@@ -222,17 +238,17 @@ function loopDraw(){
     grphState.pillarNumCount = 0;
 
     // Draw the room, simon and add them to the stage
-    drawRoom(); 
+    drawRoom();
     simon = drawSimon(simonX, simonY);
     stage.addChild(simon);
     stage.addChild(room);
 
     // If the room number matches one of the keys in the dialogue dict then the test is displayed
-    var rn = gameState.hazdMoves.length; // 'Room' number 
+    var rn = gameState.hazdMoves.length; // 'Room' number
     if (rn in dialogue){
       // Multiple lines of text are stored in arrays, the array is looped over and each bit of dialogue is shown one after another
       var textArray = dialogue[rn];
-      for (var i = 0; i < textArray.length; i++) {
+      for (let i = 0; i < textArray.length; i++) {
         // A textbox is generated, its visibility set to zero then faded in at the right time
         var text = drawTextbox(textArray[i], 40, grphState.cent, grphState.pillarH/2);
         text.alpha = 0;
@@ -249,17 +265,17 @@ function loopDraw(){
     stage.update();
   }
 
-  var uml = gameState.userMoves.length; // Number of user move 
+  var uml = gameState.userMoves.length; // Number of user move
   var tml = gameState.typeMovesTrack.length; // Number of the types of game moves (hazard or jump)
   var gml = gameState.gameMoves.length; // Number of raw game moves (L,R,U,D)
 
-  // If a new move is added to the users move list then that move type is removed from the move tracker and pushed to the queue to be animated. This move tracking system is used so that animations finish playing before the next one starts 
+  // If a new move is added to the users move list then that move type is removed from the move tracker and pushed to the queue to be animated. This move tracking system is used so that animations finish playing before the next one starts
   if (tml > (gml-uml)){
     gameState.typeMoveQ.push(gameState.typeMoves[tml-1]);
     gameState.typeMovesTrack.pop();
   }
 
-  // The position of simon is relative to the main stage whereas the position of the button is relative to the room which itself is a child of the stage. Since this is the case the stage position of the button is calculated and used to compare against the location of simon  
+  // The position of simon is relative to the main stage whereas the position of the button is relative to the room which itself is a child of the stage. Since this is the case the stage position of the button is calculated and used to compare against the location of simon
   var button = room.children[0]; // The button is always the first child of the room container set out in the drawRoom function
   var buttonG = button.localToGlobal(0,0);
   var buttonX = buttonG.x - ((grphState.buttonW)/2);
@@ -269,7 +285,7 @@ function loopDraw(){
   // If the number of user moves is the same as game moves and simon is over the button the button should be pushed
   // This could maybe use HitTest https://createjs.com/tutorials/HitTest/
   if (gml === uml && simon.x > buttonX){
-    // Once simons y starts to overlap with the top of the button the button is moved down  
+    // Once simons y starts to overlap with the top of the button the button is moved down
     if (simon.y >= (buttonY)){
       button.y = (simon.y + grphState.buttonH);
       // Once simon 'lands' on the button the game pauses and then resets for the next room
@@ -279,9 +295,9 @@ function loopDraw(){
         // After a pause the game resets
         setTimeout(function(){
           if (startFlag){
-          buttonFlag = true; 
-          gameCheck(); 
-          console.log('Next Level');}}, 600);
+          buttonFlag = true;
+          gameCheck();
+          console.log('Next Room');}}, 600);
       }
     }
   }
@@ -298,8 +314,8 @@ function loopDraw(){
     var pn = grphState.pillarNumCount; // Pillar number
     var ps = grphState.pillarArray[pn] + grphState.pillarW/2; // Pillar Start x
     var pe = grphState.pillarArray[pn+1] + grphState.pillarW/2; // Pillar End x
-    var ph = grphState.pillarH + grphState.roomH; // Pillar Height 
-    var th = grphState.pillarH + grphState.roomH/4; // Text Height 
+    var ph = grphState.pillarH + grphState.roomH; // Pillar Height
+    var th = grphState.pillarH + grphState.roomH/4; // Text Height
     var rh = grphState.roomH; // Room Height
     var pd = ps + (pe-ps)/2; // Half the pillar distance, used in the animation below
 
@@ -310,12 +326,12 @@ function loopDraw(){
       pe = simon.x;
       pd = simon.x;
 
-      // Since simon jumps along a quadratic curve, d/dx is linear meaning this linear animation is fine, I was worried for a minute it wasn't 
+      // Since simon jumps along a quadratic curve, d/dx is linear meaning this linear animation is fine, I was worried for a minute it wasn't
       createjs.Tween.get(room)
         .to({regX: pe2}, at);
     }
 
-    // If the jump is to the second last pillar the last instruction is displayed 
+    // If the jump is to the second last pillar the last instruction is displayed
     if (gameState.typeMovesTrack.length === 2){
       // Pull the move from the keyname
       var move = gameState.gameMoves[gameState.gameMoves.length-2];
@@ -323,7 +339,7 @@ function loopDraw(){
 
       // Create a textbox, add it to the stage and then display it for half a second
       var text = drawTextbox(move, 40, pe, th);
-      stage.addChild(text); 
+      stage.addChild(text);
       createjs.Tween.get(text)
         .wait(500)
         .to({alpha:0}, 200);
@@ -337,13 +353,13 @@ function loopDraw(){
         animationFlag = false;
         gameCheck(gameState.userMoveCount);
         gameState.userMoveCount++;});
-    
-    // The completed move is removed from the move queue
-    gameState.typeMoveQ.shift(); 
 
-    // The pillar number counter is incremented 
+    // The completed move is removed from the move queue
+    gameState.typeMoveQ.shift();
+
+    // The pillar number counter is incremented
     grphState.pillarNumCount++;
-    
+
   }
 
   // If a hazard move is made then simon will avoid a hazard
@@ -355,7 +371,7 @@ function loopDraw(){
     var pw = grphState.pillarW; // Pillar Width
     var rh = grphState.roomH; // Room Height
 
-    // If the move is an up, simon jumps up  
+    // If the move is an up, simon jumps up
     if (gameState.gameMoves[pi].includes('Up')){
       zapFlag = true; // Starts the electric bolts
 
@@ -389,7 +405,7 @@ function loopDraw(){
       var hi = hazards.children.length - 1; // Hazard Index
 
       // If the user move matches the game move then simon avoids the hazard
-      if (gameState.userMoves[pi].includes('Down')){ 
+      if (gameState.userMoves[pi].includes('Down')){
         // Animate the Mashy Spike Plate
         createjs.Tween.get(hazards.children[hi])
           .to({regY:-rh + grphState.simonSize/2}, 120)
@@ -425,7 +441,7 @@ function loopDraw(){
       var hi = hazards.children.length - 1; // Hazard Index
 
       // If the user move matches the game move then simon avoids the hazard
-      if (gameState.userMoves[pi].includes('Left')){ 
+      if (gameState.userMoves[pi].includes('Left')){
         // Animate the Spike
         createjs.Tween.get(hazards.children[hi])
           .to({regY:grphState.simonSize}, 120)
@@ -460,7 +476,7 @@ function loopDraw(){
       var hi = hazards.children.length - 1; // Hazard Index
 
       // If the user move matches the game move then simon avoids the hazard
-      if (gameState.userMoves[pi].includes('Right')){ 
+      if (gameState.userMoves[pi].includes('Right')){
         // Animate the Spike
         createjs.Tween.get(hazards.children[hi])
           .to({regY:grphState.simonSize}, 120)
@@ -491,10 +507,10 @@ function loopDraw(){
 
     // The completed move is removed from the move queue
     gameState.typeMoveQ.shift();
-  
+
   }
 
-  // Once the electricity has been started by the Up move a bolt is added, then every tick the bolt is removed and a newly generated bolt is added 
+  // Once the electricity has been started by the Up move a bolt is added, then every tick the bolt is removed and a newly generated bolt is added
   // https://stackoverflow.com/questions/36724818/remove-shapes-with-specific-name-form-stage-in-easeljs/36728703
   if (zapFlag){
     // Removes the previous bolt
@@ -514,7 +530,7 @@ function loopDraw(){
 // This function is used to calculate the positions of the pillars and walls for the room
 function generateRoom(pill){
 
-  // Clear the pillar array 
+  // Clear the pillar array
   grphState.pillarArray = [];
 
   // This is used to center pillars on the screen if there are too few to fill the screen
@@ -533,7 +549,7 @@ function generateRoom(pill){
 
 }
 
-// This function is used to calculate where the pillars should start based on the center of the room. 
+// This function is used to calculate where the pillars should start based on the center of the room.
   // The location to start drawing pillars was calculated using the two formulas:
   // center - (((pillar number-1)/2)*(pillar width+pillar gap))+pillar width/2 for odd numbers
   // center - ((pillar number/2)*(pillar width+pillar gap))-pillar width/8 for even numbers
@@ -563,14 +579,14 @@ function calcrWallX(pill){
 // This small function removes lightning from the hazards container, it needs to be a function so that when the Up animation ends it can remove the last bolt
 function lightningStriker(){
 
-  // Looping through the hazards container, if a child is found with the name 'Bolt' it is removed 
-  for (var i=hazards.children.length - 1; i>=0; i--) {
+  // Looping through the hazards container, if a child is found with the name 'Bolt' it is removed
+  for (let i=hazards.children.length - 1; i>=0; i--) {
     var hchild = hazards.getChildAt(i);
     if (hchild.name === 'Bolt'){
       hazards.removeChild(hchild);
-    } 
+    }
   }
-  
+
 }
 
 // This small function clears all the graphics containers for when the canvas needs to be cleared
@@ -589,7 +605,7 @@ function drawRoom(){
   room.removeAllChildren();
 
   var pn = grphState.pillarArray.length; // Pillar number
-  var name; // Name variable which is used to give each object a unique name, the name has no real function but for help debugging 
+  var name; // Name variable which is used to give each object a unique name
 
   // Button first so that it animates behind things
   room.addChild(drawButton((grphState.pillarArray[pn-1]+(grphState.pillarW/2)), grphState.pillarH + grphState.roomH));
@@ -614,9 +630,9 @@ function drawRoom(){
 
 }
 
-// Note that all objects are generated using functions which return a shape or object that must be added to a container or directly to the stage. In the function they are drawn at 0,0 then shifted to the specified x,y coordinates. This was done so that it is easier to track of their locations 
+// Note that all objects are generated using functions which return a shape or object that must be added to a container or directly to the stage. In the function they are drawn at 0,0 then shifted to the specified x,y coordinates. This was done so that it is easier to track of their locations
 
-// Returns a simon shape 
+// Returns a simon shape
 function drawSimon(x, y) {
 
   // Create a new graphics object centered at 0,0
@@ -624,25 +640,25 @@ function drawSimon(x, y) {
   var graphics = new createjs.Graphics();
   graphics.beginFill('#0095DD'); // <- The color of simon
   graphics.rect(-(ss/2),-ss,ss,ss);
-  
+
   // The object is centered on the given point, given a name and returned
   var simn = new createjs.Shape(graphics);
   simn.x = x;
   simn.y = y;
   simn.name = 'Simon';
-  
+
   return (simn);
 
 }
 
-// Returns a pillar shape 
+// Returns a pillar shape
 function drawPillar(x, y, name){
 
   // Create a new graphics object at 0,0
   var graphics = new createjs.Graphics();
   graphics.beginFill('#999999'); // <- The color of the pillar
   graphics.rect(0,0,grphState.pillarW,grphState.pillarH);
-  
+
   // The object is moved to the given point, given a name and returned
   var pllr = new createjs.Shape(graphics);
   pllr.x = x;
@@ -653,7 +669,7 @@ function drawPillar(x, y, name){
 
 }
 
-// Returns a wall shape 
+// Returns a wall shape
 function drawWall(x, y, w, h, name){
 
   // Create a new graphics object at 0,0
@@ -671,7 +687,7 @@ function drawWall(x, y, w, h, name){
 
 }
 
-// Returns a button shape 
+// Returns a button shape
 function drawButton(x, y){
 
   // Button width and height from the graphics object
@@ -682,7 +698,7 @@ function drawButton(x, y){
   var graphics = new createjs.Graphics();
   graphics.beginFill('#FF0000'); // <- The color of the button
   graphics.rect(-((bw)/2), -(bh), bw, bh);
-  
+
   // The object is centered on the given point and given a name
   var bttn = new createjs.Shape(graphics);
   bttn.x = x;
@@ -709,7 +725,7 @@ function drawBolt(x, y, w){
   // https://stackoverflow.com/questions/1230233/how-to-find-the-sum-of-an-array-of-numbers
   while (zapx.reduce(function(acc, val) { return acc + val; }, 0) < w){
     // The value of 20 was chosen by trial and error, may need to be changed or even made an input of the function
-    zapx.push(Math.random()*(w/20)); 
+    zapx.push(Math.random()*(w/20));
     zapy.push(-(Math.random()*20));
   }
 
@@ -722,10 +738,10 @@ function drawBolt(x, y, w){
   zapx.push(0);
   zapy.push(0);
 
-  // For all the line segments build up a continuous electric line 
+  // For all the line segments build up a continuous electric line
   // A line is drawn from temp to temp + the next random length, then the random length is added to temp so the next section of line will start from the next point
   var temp = zapx[0];
-  for (var i = 0; i < zapx.length; i++) {
+  for (let i = 0; i < zapx.length; i++) {
     graphics.moveTo(temp,zapy[i]).lineTo(temp+zapx[i],zapy[i+1]);
     temp += zapx[i];
   }
@@ -740,7 +756,7 @@ function drawBolt(x, y, w){
 
 }
 
-// Returns a large spike shape 
+// Returns a large spike shape
 function drawSpike(x, y, w, h){
 
   // Create a new graphics object centered at 0,0
@@ -753,7 +769,7 @@ function drawSpike(x, y, w, h){
   spike.x = x;
   spike.y = y;
   spike.name = 'Spike';
-  
+
   return (spike);
 
 }
@@ -765,40 +781,40 @@ function drawMSP(x, y){
   var pw = grphState.simonSize/4; // Plate Height and Arm Width
   var graphics = new createjs.Graphics();
   graphics.beginFill('#BBBBBB');
-  
-  // MSP Arm 
+
+  // MSP Arm
   // Note the arm is as long as the room so that when it extends it can reach far enough, stop changing it back to pillar height!
   graphics.rect((grphState.pillarW/2)-(pw/2),0,pw, grphState.roomH);
-  
+
   // MSP Plate
   graphics.rect(0,grphState.roomH-pw,(grphState.pillarW*0.95), pw);
-  
+
   // MSP Spikes, 9 for every plate
   var step = grphState.pillarW/10;
   var start = step/2 + (grphState.pillarW/40); // Start in at a fraction of the plate width
   // Looping 9 times adding a spike at each step
-  for (var i = 0; i < 9; i++) {
+  for (let i = 0; i < 9; i++) {
     graphics.moveTo(start+(step/2),grphState.roomH)
       .lineTo(start,grphState.roomH+(pw*0.75))
       .lineTo(start-(step/2),grphState.roomH)
       .closePath();
     start += step;
   }
-  
+
   // The object is moved to the given point, given a name and returned
   var msp = new createjs.Shape(graphics);
   msp.x = x;
   msp.y = y;
   msp.name = 'Mashy Spike Plate';
-  
+
   return (msp);
 
 }
 
-// Returns a textbox the width and height of the entered text 
+// Returns a textbox the width and height of the entered text
 function drawTextbox(text, fs, x, y){
 
-  // The fontsize is dynamic using the graphics multiplier 
+  // The fontsize is dynamic using the graphics multiplier
   var fontSize = fs*grphState.mult;
 
   // The max width of the textbox is set to the max screen width with a little chopped off each side
@@ -841,14 +857,14 @@ function gameOverGraphics(){
     graphics.beginFill('#000000');
     graphics.rect(0, 0, grphState.winW, grphState.winH);
     var curtains = new createjs.Shape(graphics);
-    
-    // Set the curtain to be transparent then fade in 
-    curtains.alpha = 0; 
+
+    // Set the curtain to be transparent then fade in
+    curtains.alpha = 0;
     stage.addChild(curtains);
     createjs.Tween.get(curtains)
       .to({alpha:1}, 100);
 
-    // A textbox is generated, its visibility set to zero then faded in  
+    // A textbox is generated, its visibility set to zero then faded in
     var textbox = drawTextbox(dialogue.go, 40, grphState.winW/2, grphState.winH/2);
     textbox.alpha = 0;
     stage.addChild(textbox);
