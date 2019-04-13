@@ -21,13 +21,13 @@ function nextmoveRandom() {
 
   var num = parseInt((Math.random() * 4));
   var move;
-  if (num == 0) {
+  if (num === 0) {
     // move = 'ArrowLeft';
     move = 'ArrowUp';
-  } else if (num == 1) {
+  } else if (num === 1) {
     // move = 'ArrowLeft';
     move = 'ArrowDown';
-  } else if (num == 2) {
+  } else if (num === 2) {
     // move = 'ArrowLeft';
     move = 'ArrowLeft';
   } else {
@@ -97,7 +97,7 @@ function gameCheck(move){
   }
   
   // If the check is passed and the length of the two arrays are equal then userMoves is reset and one extra move it added to gameMoves
-  else if (um.length == gm.length && buttonFlag == true) {
+  else if (um.length === gm.length && buttonFlag === true) {
     var move = nextmoveRandom();
     gameState.userMoves = [];
     gameState.gameMoves.push(move);

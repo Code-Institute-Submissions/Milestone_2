@@ -71,7 +71,7 @@ var dialogue = {
   15: ['Just keep doing what I say Simon', 'Just do', 'What', 'I', 'Say'],
   go: ['I\'m sorry Simon, you need to do exactly what I say if you want to make out of here alive'],
   gr: ['Now Simon, did I tell you to change the size of the browser?'],
-  ld: ['The game is better in landscape,\njust do what I say and flip the device']
+  ld: ['Hello Simon, please follow my instructions and flip your device to play the game']
 };
 
 // Global flags to monitor game state
@@ -157,7 +157,9 @@ function initDraw(num){
     
     // Once everything is cleared a textbox is drawn to tell the player to rotate to landscape 
     graphicsRestart();
+    var titlebox = drawTextbox('Simon', 120, grphState.winW/2, grphState.winH/4);
     var textbox = drawTextbox(dialogue.ld, 40, grphState.winW/2, grphState.winH*0.75);
+    stage.addChild(titlebox);
     stage.addChild(textbox);
     stage.update();
   }
@@ -181,8 +183,8 @@ function initDraw(num){
     var simonY = grphState.pillarH + grphState.roomH;
 
     // Display a title and instructions to start
-    var titlebox = drawTextbox('Simon', 120, grphState.winW/2, grphState.winH/4)
-    var textbox = drawTextbox('Press space or tap to start', 40, grphState.winW/2, grphState.winH/2)
+    var titlebox = drawTextbox('Simon', 120, grphState.winW/2, grphState.winH/4);
+    var textbox = drawTextbox('Press space or tap to start', 40, grphState.winW/2, grphState.winH/2);
 
     // Draw the generated room, simon and add them both to the stage
     drawRoom();
@@ -266,12 +268,12 @@ function loopDraw(){
 
   // If the number of user moves is the same as game moves and simon is over the button the button should be pushed
   // This could maybe use HitTest https://createjs.com/tutorials/HitTest/
-  if (gml == uml && simon.x > buttonX){
+  if (gml === uml && simon.x > buttonX){
     // Once simons y starts to overlap with the top of the button the button is moved down  
     if (simon.y >= (buttonY)){
       button.y = (simon.y + grphState.buttonH);
       // Once simon 'lands' on the button the game pauses and then resets for the next room
-      if (animationFlag == false){
+      if (animationFlag === false){
         console.log('ButtonPressed');
         animationFlag = true; // Animation Flag is set
         // After a pause the game resets
@@ -290,7 +292,7 @@ function loopDraw(){
   }
 
   // If a jump move is made then simon will jump from pillar to pillar. This will need to check the direction that was pushed as at the moment the game will abruptly end if the wrong key is pressed. In the future simon could jump backwards but should animate a failure (eg electrocution?)
-  if (gameState.typeMoveQ[0] == 'Jump' && animationFlag == false){
+  if (gameState.typeMoveQ[0] === 'Jump' && animationFlag === false){
     animationFlag = true; // Animation Flag is set
     var at = 500; // Animation time in ms
     var pn = grphState.pillarNumCount; // Pillar number
@@ -314,7 +316,7 @@ function loopDraw(){
     }
 
     // If the jump is to the second last pillar the last instruction is displayed 
-    if (gameState.typeMovesTrack.length == 2){
+    if (gameState.typeMovesTrack.length === 2){
       // Pull the move from the keyname
       var move = gameState.gameMoves[gameState.gameMoves.length-2];
       move = move.replace('Arrow','');
@@ -345,7 +347,7 @@ function loopDraw(){
   }
 
   // If a hazard move is made then simon will avoid a hazard
-  else if (gameState.typeMoveQ[0] == 'Hazard' && animationFlag == false){
+  else if (gameState.typeMoveQ[0] === 'Hazard' && animationFlag === false){
     animationFlag = true; // Animation Flag is set
     var pn = grphState.pillarNumCount; // Pillar number
     var pi = (grphState.pillarNumCount * 2)-1; // Pillar index of the current pillar for arrays
@@ -564,7 +566,7 @@ function lightningStriker(){
   // Looping through the hazards container, if a child is found with the name 'Bolt' it is removed 
   for (var i=hazards.children.length - 1; i>=0; i--) {
     var hchild = hazards.getChildAt(i);
-    if (hchild.name == 'Bolt'){
+    if (hchild.name === 'Bolt'){
       hazards.removeChild(hchild);
     } 
   }
@@ -858,7 +860,7 @@ function gameOverGraphics(){
       .to({alpha:0}, 200)
       .wait(1000)
       .call(function(){
-        if (startFlag == false){
+        if (startFlag === false){
         initDraw(grphState.pillarNum-1);}});
 
 }

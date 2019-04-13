@@ -18,14 +18,14 @@ function keyDownHandler(e) {
   var moveFlag = false; 
 
   // If the Space button is pressed the game is restarted
-  if (e.code == 'Space'){
+  if (e.code === 'Space'){
     gameStart(1);
     startFlag = true;
   }
 
   // Checks if the move is a valid Simon move and sets the flag true
   for (let i = 0; i < gameState.validMoves.length; i++) {
-    if (gameState.validMoves[i] == e.code) {
+    if (gameState.validMoves[i] === e.code) {
       moveFlag = true;
     }
   }
