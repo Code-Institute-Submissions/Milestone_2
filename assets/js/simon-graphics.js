@@ -77,7 +77,7 @@ var grphState = {
 };
 
 var dialogue = {
-  1: ['Hello Simon', 'I need your help to push that big red button over there','If you follow my instructions, you will make it there safely','Jump to that pillar ahead of you using the right arrow, then do as I say'],
+  1: ['Hello Simon', 'I need your help to push that big red button over there','If you follow my instructions, you will make it there safely','Jump to the pillar ahead using the right arrow or a swipe right, then do as I say'],
   2: ['Hello again Simon', 'I need you to push that big red button over there','If you do as I say, you will make it there safely'],
   3: ['I need you to push that button Simon. Just do as I say and you will be safe'],
   5: ['Keep going Simon', 'I will keep you safe'],
@@ -87,6 +87,7 @@ var dialogue = {
   14: ['Maybe soon I might let you out of here', 'Or not'],
   15: ['Just keep doing what I say Simon', 'Just do', 'What', 'I', 'Say'],
   go: ['I\'m sorry Simon, you need to do exactly what I say if you want to make out of here alive'],
+  go2: ['I told you Simon, I need you to push that button, there is no going back'],
   gr: ['Now Simon, did I tell you to change the size of the browser?'],
   ld: ['Hello Simon, please follow my instructions and flip your device to play the game']
 };
@@ -135,7 +136,7 @@ function resizeCanvas() {
 
   // It's brutal but for the moment if the game has started it forces a gameover as it is difficult to recalculate the locations of everything on the fly and maintain the gamestate. If the game hasn't started then the room is drawn normally
   if (startFlag){
-    window.gameOver();
+    gameOver();
     initDraw(grphState.pillarNum - 1);
   }
 
@@ -283,7 +284,6 @@ function loopDraw(){
 
 
   // If the number of user moves is the same as game moves and simon is over the button the button should be pushed
-  // This could maybe use HitTest https://createjs.com/tutorials/HitTest/
   if (gml === uml && simon.x > buttonX){
     // Once simons y starts to overlap with the top of the button the button is moved down
     if (simon.y >= (buttonY)){
@@ -296,7 +296,7 @@ function loopDraw(){
         setTimeout(function(){
           if (startFlag){
           buttonFlag = true;
-          gameCheck();
+          gameCheck(gml);
           console.log('Next Room');}}, 600);
       }
     }
@@ -312,6 +312,7 @@ function loopDraw(){
     animationFlag = true; // Animation Flag is set
     var at = 500; // Animation time in ms
     var pn = grphState.pillarNumCount; // Pillar number
+    var pi = (grphState.pillarNumCount * 2); // Pillar index of the current pillar for arrays
     var ps = grphState.pillarArray[pn] + grphState.pillarW/2; // Pillar Start x
     var pe = grphState.pillarArray[pn+1] + grphState.pillarW/2; // Pillar End x
     var ph = grphState.pillarH + grphState.roomH; // Pillar Height
@@ -319,47 +320,55 @@ function loopDraw(){
     var rh = grphState.roomH; // Room Height
     var pd = ps + (pe-ps)/2; // Half the pillar distance, used in the animation below
 
-    // If the distance to the next pillar is over the half way mark then the room is scrolled instead of simon so the x movement for simon is set to 0
-    if (grphState.pillarArray[pn+1] > grphState.cent){
-      var pe2 = pe - simon.x;
-      ps = simon.x;
-      pe = simon.x;
-      pd = simon.x;
+    if (gameState.userMoves[pi].includes('Right')){
+      // If the distance to the next pillar is over the half way mark then the room is scrolled instead of simon so the x movement for simon is set to 0
+      if (grphState.pillarArray[pn+1] > grphState.cent){
+        var pe2 = pe - simon.x;
+        ps = simon.x;
+        pe = simon.x;
+        pd = simon.x;
 
-      // Since simon jumps along a quadratic curve, d/dx is linear meaning this linear animation is fine, I was worried for a minute it wasn't
-      createjs.Tween.get(room)
-        .to({regX: pe2}, at);
+        // Since simon jumps along a quadratic curve, d/dx is linear meaning this linear animation is fine, I was worried for a minute it wasn't
+        createjs.Tween.get(room)
+          .to({regX: pe2}, at);
+      }
+
+      // If the jump is to the second last pillar the last instruction is displayed
+      if (gameState.typeMovesTrack.length === 2){
+        // Pull the move from the keyname
+        var move = gameState.gameMoves[gameState.gameMoves.length-2];
+        move = move.replace('Arrow','');
+
+        // Create a textbox, add it to the stage and then display it for half a second
+        var text = drawTextbox(move, 40, pe, th);
+        stage.addChild(text);
+        createjs.Tween.get(text)
+          .wait(500)
+          .to({alpha:0}, 200);
+      }
+
+      // Otherwise if simon is not beyond the center he is animated normally
+      createjs.Tween.get(simon)
+        .to({guide:{ path:[ps,ph, pd,ph-(rh/2),pe,ph] }},at)
+        .wait(50)
+        .call(function(){
+          animationFlag = false;
+          gameCheck(gameState.userMoveCount);
+          gameState.userMoveCount++;});
+
+      // The completed move is removed from the move queue
+      gameState.typeMoveQ.shift();
+
+      // The pillar number counter is incremented
+      grphState.pillarNumCount++;
     }
-
-    // If the jump is to the second last pillar the last instruction is displayed
-    if (gameState.typeMovesTrack.length === 2){
-      // Pull the move from the keyname
-      var move = gameState.gameMoves[gameState.gameMoves.length-2];
-      move = move.replace('Arrow','');
-
-      // Create a textbox, add it to the stage and then display it for half a second
-      var text = drawTextbox(move, 40, pe, th);
-      stage.addChild(text);
-      createjs.Tween.get(text)
-        .wait(500)
-        .to({alpha:0}, 200);
+    else{
+      createjs.Tween.get(simon)
+          .to({alpha: 0}, 200)
+          .call(function(){
+          animationFlag = false;
+          gameCheck(gameState.userMoveCount, dialogue.go2);});
     }
-
-    // Otherwise if simon is not beyond the center he is animated normally
-    createjs.Tween.get(simon)
-      .to({guide:{ path:[ps,ph, pd,ph-(rh/2),pe,ph] }},at)
-      .wait(50)
-      .call(function(){
-        animationFlag = false;
-        gameCheck(gameState.userMoveCount);
-        gameState.userMoveCount++;});
-
-    // The completed move is removed from the move queue
-    gameState.typeMoveQ.shift();
-
-    // The pillar number counter is incremented
-    grphState.pillarNumCount++;
-
   }
 
   // If a hazard move is made then simon will avoid a hazard
@@ -850,7 +859,7 @@ function drawTextbox(text, fs, x, y){
 }
 
 // This function animates the gameover, it fades the screen to black and displays the gameover text
-function gameOverGraphics(){
+function gameOverGraphics(text){
 
     // Create a new graphics object at 0,0
     var graphics = new createjs.Graphics();
@@ -865,7 +874,7 @@ function gameOverGraphics(){
       .to({alpha:1}, 100);
 
     // A textbox is generated, its visibility set to zero then faded in
-    var textbox = drawTextbox(dialogue.go, 40, grphState.winW/2, grphState.winH/2);
+    var textbox = drawTextbox(text, 40, grphState.winW/2, grphState.winH/2);
     textbox.alpha = 0;
     stage.addChild(textbox);
     // Fade text animation

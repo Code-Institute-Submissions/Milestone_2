@@ -13,9 +13,11 @@
 // Initializing the game Canvas and Stage
 var canvas = document.getElementById("maincanvas");
 var stage = new createjs.Stage(canvas);
+// simon is a global object so he's easier to keep track of
+var simon = {};
+// Same with the room and the hazards being global createjs containers
 var room = new createjs.Container();
 var hazards = new createjs.Container();
-var simon = {}; // simon is a global object so he's easier to keep track of
 
 // startFlag is used to trigger the game on and off
 var startFlag = false;

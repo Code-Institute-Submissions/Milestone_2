@@ -26,7 +26,6 @@ var gameState = {
 //https://gamedevelopment.tutsplus.com/tutorials/shuffle-bags-making-random-feel-more-random--gamedev-1249
 function nextmoveRandom(){
 
-
   if (gameState.bagofMoves.length === 0){
     var handfull = gameState.validMoves.concat(gameState.validMoves);
     handfull = handfull.concat(gameState.validMoves);
@@ -36,6 +35,7 @@ function nextmoveRandom(){
 
   var move = gameState.bagofMoves.pop();
   return move;
+
 }
 
 // This function shuffles an array using the Fisher-Yates method of shuffling which works by walking the array in reverse order and swapping each element with a random one before it.
@@ -69,7 +69,7 @@ function gameStart(num){
 
   // When dupicating an array this notation needs to be used as JavaScript is a pointer based language
   //https://www.samanthaming.com/tidbits/35-es6-way-to-clone-an-array
-  gameState.typeMovesTrack = gameState.typeMoves.slice();
+  gameState.typeMovesTrack = [...gameState.typeMoves];
 
   // Generate a room for the start of the game
   generateRoom(num+2);
@@ -84,49 +84,51 @@ function gameStart(num){
 
 // Function to check if the player has entered a correct move
 // If the move is wrong the game is reset
-function gameCheck(move){
+function gameCheck(move, text){
 
   var gm = gameState.gameMoves; // Game moves
   var um = gameState.userMoves; // User moves
 
   // If the user enter more moves than there are gameMoves they are immediately removed
-  // I have no idea why but when I add or take away things from this loop the code breaks in the simon-graphics file, I get a gameState does not exist at line 154
-  // ¯\_(ツ)_/¯
   if (um.length > gm.length){
     gameState.userMoves.pop();
   }
-  // gameOverflow();
-  // console.log('Test'); // Even adding this humble console log breaks the code, I have no idea why
-  // var test = 1; // This too
 
   // Checks that the latest entered move is the same as latest generated move
   // If they are not the game ends and the startFlag is reset
   else if (um[move] !== gm[move]){
-    gameOver(dialogue.go);
+    // If text was given as an input then pass it on to gameOver
+    if (text){
+      gameOver(text);
+    }
+    // Otherwise pass the default game over text
+    else{
+      gameOver(dialogue.go);
+    }
   }
 
   // If the check is passed and the length of the two arrays are equal then userMoves is reset and one extra move it added to gameMoves
   else if (um.length === gm.length && buttonFlag === true) {
-    var move = nextmoveRandom();
+    var newmove = nextmoveRandom();
     gameState.userMoves = [];
-    gameState.gameMoves.push(move);
-    gameState.hazdMoves.push(move);
+    gameState.gameMoves.push(newmove);
+    gameState.hazdMoves.push(newmove);
     gameState.typeMoves.push('Hazard');
     gameState.gameMoves.push('ArrowRight');
     gameState.typeMoves.push('Jump');
-    gameState.typeMovesTrack = gameState.typeMoves.slice();
+    gameState.typeMovesTrack = [...gameState.typeMoves];
     generateRoom(((gameState.gameMoves.length-1)/2) + 2); //+2 for start and end platforms
     console.log(gameState.gameMoves);
   }
 
 }
 
+// If the user enter more moves than there are gameMoves they are immediately removed
 function gameOverflow(){
 
   var gm = gameState.gameMoves; // Game moves
   var um = gameState.userMoves; // User moves
 
-  // If the user enter more moves than there are gameMoves they are immediately removed
   while (um.length > gm.length){
     gameState.userMoves.pop();
   }
@@ -134,9 +136,9 @@ function gameOverflow(){
 }
 
 // This function ends and resets the game.
-function gameOver(){
-  gameOverGraphics();
-  // alert('Game Over - Press Space to start again');
+function gameOver(text){
+  gameOverGraphics(text);
+
   startFlag = false;
 
   gameReset();
