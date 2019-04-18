@@ -58,17 +58,20 @@ manager.get('singletap').requireFailure('doubletap');
 manager.on('swipe', function(e) {
   var direction = e.offsetDirection;
   console.log('Swipe');
-  if (direction === 8) {
-    gameState.userMoves.push('ArrowUp');
-  }
-  else if (direction === 16) {
-    gameState.userMoves.push('ArrowDown');
-  }
-  else if (direction === 2) {
-    gameState.userMoves.push('ArrowLeft');
-  }
-  else if (direction === 4) {
-    gameState.userMoves.push('ArrowRight');
+  // Only when the animation has finished will another swipe be accepted
+  if (animationFlag === false){
+    if (direction === 8) {
+      gameState.userMoves.push('ArrowUp');
+    }
+    else if (direction === 16) {
+      gameState.userMoves.push('ArrowDown');
+    }
+    else if (direction === 2) {
+      gameState.userMoves.push('ArrowLeft');
+    }
+    else if (direction === 4) {
+      gameState.userMoves.push('ArrowRight');
+    }
   }
 });
 
