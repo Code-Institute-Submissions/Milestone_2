@@ -11,6 +11,7 @@
 /*global gameStart*/
 // simon-graphics.js
 /*global gameState*/
+/*global animationFlag*/
 /*global initializeG*/
 // simon-audio.js
 /*global initializeS*/
@@ -29,8 +30,9 @@ hazards.name = 'hazards';
 // startFlag is used to trigger the game on and off
 var startFlag = false;
 
-// initialize the generated sounds object
+// initialize the generated sounds object and set the volume
 var notes = Synth.createInstrument('organ');
+Synth.setVolume(0.75);
 
 // Using the body-scroll-lock library to lock the canvas so that on iOS devices the game doesn't overscroll
 bodyScrollLock.disableBodyScroll(canvas);
@@ -87,7 +89,8 @@ function keyDownHandler(e) {
 
   // If the key is a valid Simon move and the game has started then add the move to the userMoves array
   for (let i = 0; i < gameState.validMoves.length; i++) {
-    if (e.code === gameState.validMoves[i] && startFlag) {
+    if (e.code === gameState.validMoves[i] && startFlag && animationFlag === false) {
+      console.log(e.code);
       gameState.userMoves.push(e.code);
     }
   }

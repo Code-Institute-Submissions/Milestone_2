@@ -23,5 +23,5 @@ function initializeS() {
   }
 
   createjs.Sound.registerSounds(sounds, audioPath);
-  createjs.Sound.volume = 0.33;
+  createjs.Sound.volume = 0.25;
 }

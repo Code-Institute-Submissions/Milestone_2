@@ -2,6 +2,8 @@
 /*jslint node: true */
 /*jshint browser: true */
 'use strict';
+//Library
+/*global Synth*/
 // simon-game.js
 /*global startFlag:true*/
 /*global notes*/
@@ -90,6 +92,8 @@ function gameStart(num) {
   // Print game moves to console for cheaters
   console.log(gameState.gameMoves);
 
+  // Lower the volume so that the sound doesn't clip
+  Synth.setVolume(0.4);
   // Play the initial jingle, each simon note in succession
   setTimeout(function() {
     notes.play('G#', 4, 0.7);
@@ -103,6 +107,9 @@ function gameStart(num) {
   setTimeout(function() {
     notes.play('G#', 3, 1.3);
   }, 680);
+  setTimeout(function() {
+    Synth.setVolume(0.75);
+  }, 800);
 }
 
 // Function to check if the player has entered a correct move
