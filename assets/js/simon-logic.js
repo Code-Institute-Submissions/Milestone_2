@@ -1,41 +1,50 @@
-// Letting JSHint know that everything is ok
+// Letting JSHint know that everything is ok and letting it know that variables are declared elsewhere
 /*jslint node: true */
 /*jshint browser: true */
-"use strict";
-/*global generateRoom*/
-/*global buttonFlag:true*/
+'use strict';
+// simon-game.js
 /*global startFlag:true*/
+/*global notes*/
+// simon-graphics.js
 /*global dialogue*/
+/*global buttonFlag:true*/
+/*global generateRoom*/
 /*global gameOverGraphics*/
 
 // gameState object keeps track of the user moves and game moves
 var gameState = {
-  userMoveCount:0,
-  userMoves:[],
-  userMovesQ:[],
-  gameMoves:[],
-  typeMoves:[],
-  hazdMoves:[],
-  typeMovesTrack:[],
-  typeMoveQ:[],
-  bagofMoves:[],
-  validMoves:['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']};
+  userMoveCount: 0,
+  userMoves: [],
+  userMovesQ: [],
+  gameMoves: [],
+  typeMoves: [],
+  hazdMoves: [],
+  typeMovesTrack: [],
+  typeMoveQ: [],
+  bagofMoves: [],
+  validMoves: ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']
+};
 
 // Function returns a random move
-// The previous random move function used to generate a random number between 0-3 and return the corresponding move. The problem with this approach is that there is no memory of previous moves, leading to games with little variability (~12 round game of only ups and downs was the record). This version of the function uses a 'shuffle bag' approach. If the 'bag' is empty the function fills it with 3 shuffled copies of the valid move array then pops a move from the 'bag' till it's emptied and refilled again. This means that long streaks of the same move or games that never feature one of the moves should never happen.
+// The previous random move function used to generate a random number between 0-3 and return the corresponding move. The problem with this approach is that there is no memory of previous moves, leading to games with little variability (~12 round game of only ups and downs was the record). This version of the function uses a 'shuffle bag' approach. If the 'bag' is empty the function fills it with multiple shuffled copies of the valid move array then pops a move from the 'bag' till it's emptied and refilled again. This means that long streaks of the same move or games that never feature one of the moves shouldn't happen.
 //https://gamedevelopment.tutsplus.com/tutorials/shuffle-bags-making-random-feel-more-random--gamedev-1249
-function nextmoveRandom(){
+function nextmoveRandom() {
+  // If the bag is empty, refill the bag
+  if (gameState.bagofMoves.length === 0) {
+    var handfull = gameState.validMoves; // 1 set
 
-  if (gameState.bagofMoves.length === 0){
-    var handfull = gameState.validMoves.concat(gameState.validMoves);
-    handfull = handfull.concat(gameState.validMoves);
+    // Duplicate the following line if you want more sets of valid moves in the bag, be warned though, the more duplicates in the bag then the longer a streak of the same move can be. The max streak will be twice the number of sets in the bag
+    handfull = handfull.concat(gameState.validMoves); // 2 sets
+    // handfull = handfull.concat(gameState.validMoves); // 3 sets felt like too many
+
+    // Add the handful of moves to the bag then shuffle
     gameState.bagofMoves = handfull;
     shuffleArray(gameState.bagofMoves);
   }
 
+  // Once the bag has moves then take a move from the bag and return it
   var move = gameState.bagofMoves.pop();
   return move;
-
 }
 
 // This function shuffles an array using the Fisher-Yates method of shuffling which works by walking the array in reverse order and swapping each element with a random one before it.
@@ -47,15 +56,14 @@ function shuffleArray(array) {
   }
 }
 
-// Function used to start game with given number of moves
-function gameStart(num){
-
+// Function used to start game with given number of moves, at the moment the game only starts with 1 hazard but in the future should a difficulty setting be added then this can start a game with arbitrarily many hazards
+function gameStart(num) {
   console.log('New Game');
 
   // Clearing gameState arrays
   gameReset();
 
-  // Adding number of moves to game arrays
+  // Adding moves for the number of hazards to game arrays
   for (let i = 0; i < num; i++) {
     var move = nextmoveRandom();
     gameState.gameMoves.push('ArrowRight');
@@ -64,50 +72,63 @@ function gameStart(num){
     gameState.hazdMoves.push(move);
     gameState.typeMoves.push('Hazard');
   }
+
+  // Adding the final button moves
   gameState.gameMoves.push('ArrowRight');
   gameState.typeMoves.push('Jump');
 
-  // When dupicating an array this notation needs to be used as JavaScript is a pointer based language
+  // When duplicating an array this notation needs to be used as JavaScript is a reference based language
   //https://www.samanthaming.com/tidbits/35-es6-way-to-clone-an-array
   gameState.typeMovesTrack = [...gameState.typeMoves];
 
   // Generate a room for the start of the game
-  generateRoom(num+2);
+  generateRoom(num + 2);
 
-  // Press the button to reset the stage
+  // 'Press' the button to reset the stage in the loopDraw
   buttonFlag = true;
 
-  // Print game moves to console
+  // Print game moves to console for cheaters
   console.log(gameState.gameMoves);
 
+  // Play the initial jingle, each simon note in succession
+  setTimeout(function() {
+    notes.play('G#', 4, 0.7);
+  }, 320);
+  setTimeout(function() {
+    notes.play('D#', 4, 0.9);
+  }, 440);
+  setTimeout(function() {
+    notes.play('B', 3, 1.1);
+  }, 560);
+  setTimeout(function() {
+    notes.play('G#', 3, 1.3);
+  }, 680);
 }
 
 // Function to check if the player has entered a correct move
-// If the move is wrong the game is reset
-function gameCheck(move, text){
-
+// If the move is wrong gameOver is triggered
+function gameCheck(move, text) {
   var gm = gameState.gameMoves; // Game moves
   var um = gameState.userMoves; // User moves
 
-  // If the user enter more moves than there are gameMoves they are immediately removed
-  if (um.length > gm.length){
-    gameState.userMoves.pop();
-  }
+  // If the user has entered more moves than there are gameMoves they are immediately removed
+  gameOverflow();
 
   // Checks that the latest entered move is the same as latest generated move
   // If they are not the game ends and the startFlag is reset
-  else if (um[move] !== gm[move]){
+  if (um[move] !== gm[move]) {
     // If text was given as an input then pass it on to gameOver
-    if (text){
+    if (text) {
       gameOver(text);
     }
+
     // Otherwise pass the default game over text
-    else{
+    else {
       gameOver(dialogue.go);
     }
   }
 
-  // If the check is passed and the length of the two arrays are equal then userMoves is reset and one extra move it added to gameMoves
+  // If the check has passed, the length of the two arrays are checked to be equal. If they are and the button has been presed then userMoves is reset and one extra move it added to gameMoves
   else if (um.length === gm.length && buttonFlag === true) {
     var newmove = nextmoveRandom();
     gameState.userMoves = [];
@@ -117,36 +138,30 @@ function gameCheck(move, text){
     gameState.gameMoves.push('ArrowRight');
     gameState.typeMoves.push('Jump');
     gameState.typeMovesTrack = [...gameState.typeMoves];
-    generateRoom(((gameState.gameMoves.length-1)/2) + 2); //+2 for start and end platforms
+    generateRoom((gameState.gameMoves.length - 1) / 2 + 2); //+2 for start and end platforms
     console.log(gameState.gameMoves);
   }
-
 }
 
-// If the user enter more moves than there are gameMoves they are immediately removed
-function gameOverflow(){
-
+// This function checks if the user has entered more moves than there are game moves, if they have the extra moves are removed
+function gameOverflow() {
   var gm = gameState.gameMoves; // Game moves
   var um = gameState.userMoves; // User moves
 
-  while (um.length > gm.length){
+  while (um.length > gm.length) {
     gameState.userMoves.pop();
   }
-
 }
 
 // This function ends and resets the game.
-function gameOver(text){
+function gameOver(text) {
   gameOverGraphics(text);
-
   startFlag = false;
-
   gameReset();
-
 }
 
-function gameReset(){
-  // Clearing gameState arrays
+function gameReset() {
+  // Clear the gameState arrays
   gameState.userMoveCount = 0;
   gameState.userMoves = [];
   gameState.userMovesQ = [];
