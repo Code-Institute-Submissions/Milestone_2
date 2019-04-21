@@ -17,7 +17,6 @@
 var gameState = {
   userMoveCount: 0,
   userMoves: [],
-  userMovesQ: [],
   gameMoves: [],
   typeMoves: [],
   hazdMoves: [],
@@ -73,6 +72,11 @@ function gameStart(num) {
     gameState.gameMoves.push(move);
     gameState.hazdMoves.push(move);
     gameState.typeMoves.push('Hazard');
+  }
+
+  // Is used for testing so that the game plays itself
+  if (cheaterFlag){
+    gameState.userMoves = [...gameState.gameMoves];
   }
 
   // Adding the final button moves
@@ -147,6 +151,11 @@ function gameCheck(move, text) {
     gameState.typeMovesTrack = [...gameState.typeMoves];
     generateRoom((gameState.gameMoves.length - 1) / 2 + 2); //+2 for start and end platforms
     console.log(gameState.gameMoves);
+
+    // Is used for testing so that the game plays itself
+    if (cheaterFlag){
+      gameState.userMoves = [...gameState.gameMoves];
+    }
   }
 }
 
@@ -171,10 +180,13 @@ function gameReset() {
   // Clear the gameState arrays
   gameState.userMoveCount = 0;
   gameState.userMoves = [];
-  gameState.userMovesQ = [];
   gameState.gameMoves = [];
   gameState.typeMoves = [];
   gameState.hazdMoves = [];
   gameState.typeMovesTrack = [];
   gameState.typeMoveQ = [];
+}
+
+function dummy(num){
+  return num;
 }

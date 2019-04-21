@@ -153,18 +153,9 @@ function initializeG() {
   // Initialize the canvas on first loading the page
   resizeCanvas();
 
-  // Initial Draw
-  // Splash screen should always try to show the button at the end so it is set to max pillarNum -1
-  if (grphState.pillarNum > 3) {
-    initDraw(grphState.pillarNum - 1);
-  }
-  // If it can't show it, then draw the minimum of 3
-  else {
-    initDraw(3);
-  }
 }
 
-// Functions used to dynamically resize the canvas to the device size, Runs each time the DOM window resize event fires.
+// Functions used to dynamically resize the canvas to the device size, Runs each time the DOM window resize event finishes firing .
 // http://htmlcheats.com/html/resize-the-html5-canvas-dyamically/
 function resizeCanvas() {
   canvas.width = window.innerWidth;
@@ -633,11 +624,11 @@ function generateRoom(pill) {
 }
 
 // This function is used to calculate where the pillars should start based on the center of the room.
-// The location to start drawing pillars was calculated using the two formulas:
-// center - (((pillar number-1)/2)*(pillar width+pillar gap))+pillar width/2 for odd numbers of pillars
-// center - ((pillar number/2)*(pillar width+pillar gap))-pillar width/8 for even numbers of pillars
-// Turns out these equations reduce to the same formula which is used below
-// Note that the formulas above used a hard coded value for the gap between pillars, now the formula below uses a more general form using pillarGap
+  // The location to start drawing pillars was calculated using the two formulas:
+  // center - (((pillar number-1)/2)*(pillar width+pillar gap))+pillar width/2 for odd numbers of pillars
+  // center - ((pillar number/2)*(pillar width+pillar gap))-pillar width/8 for even numbers of pillars
+  // Turns out these equations reduce to the same formula which is used below
+  // Note that the formulas above used a hard coded value for the gap between pillars, now the formula below uses a more general form using pillarGap
 function calcPillarStart(pill) {
   var c = grphState.cent;
   var pw = grphState.pillarW;

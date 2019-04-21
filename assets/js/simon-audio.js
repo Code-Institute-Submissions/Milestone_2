@@ -4,6 +4,7 @@
 'use strict';
 // Library
 /*global createjs*/
+/*global Synth*/
 
 // Define path to audio and list of key/value paired sounds for SoundJS
 var audioPath = 'assets/sounds/';
@@ -14,6 +15,10 @@ var sounds = [
   { id: 'SpikeR', src: 'Spike_D7.wav' },
   { id: 'Click', src: 'Click.wav' }
 ];
+
+// initialize the generated sounds object and set the volume
+var notes = Synth.createInstrument('organ');
+Synth.setVolume(0.75);
 
 // Initialize createjs sounds and set their volume to 1/3 the game volume
 function initializeS() {

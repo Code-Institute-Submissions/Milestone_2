@@ -18,12 +18,12 @@ function drawSimon(x, y) {
   graphics.rect(-(ss / 2), -ss, ss, ss);
 
   // The object is centered on the given point, given a name and returned
-  var simn = new createjs.Shape(graphics);
-  simn.x = x;
-  simn.y = y;
-  simn.name = 'Simon';
+  var simon = new createjs.Shape(graphics);
+  simon.x = x;
+  simon.y = y;
+  simon.name = 'Simon';
 
-  return simn;
+  return simon;
 }
 
 // Returns a pillar shape
@@ -34,12 +34,12 @@ function drawPillar(x, y, name) {
   graphics.rect(0, 0, grphState.pillarW, grphState.pillarH);
 
   // The object is moved to the given point, given a name and returned
-  var pllr = new createjs.Shape(graphics);
-  pllr.x = x;
-  pllr.y = y;
-  pllr.name = name;
+  var pillar = new createjs.Shape(graphics);
+  pillar.x = x;
+  pillar.y = y;
+  pillar.name = name;
 
-  return pllr;
+  return pillar;
 }
 
 // Returns a wall shape
@@ -70,12 +70,12 @@ function drawButton(x, y) {
   graphics.rect(-(bw / 2), -bh, bw, bh);
 
   // The object is centered on the given point and given a name
-  var bttn = new createjs.Shape(graphics);
-  bttn.x = x;
-  bttn.y = y;
-  bttn.name = 'Button';
+  var button = new createjs.Shape(graphics);
+  button.x = x;
+  button.y = y;
+  button.name = 'Button';
 
-  return bttn;
+  return button;
 }
 
 // Returns a new randomly generated squiggly bolt of lightning, very, very frightening me

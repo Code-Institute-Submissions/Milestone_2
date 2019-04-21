@@ -6,7 +6,6 @@
 /*global createjs*/
 /*global bodyScrollLock*/
 /*global Hammer*/
-/*global Synth*/
 // simon-logic.js
 /*global gameStart*/
 // simon-graphics.js
@@ -30,9 +29,8 @@ hazards.name = 'hazards';
 // startFlag is used to trigger the game on and off
 var startFlag = false;
 
-// initialize the generated sounds object and set the volume
-var notes = Synth.createInstrument('organ');
-Synth.setVolume(0.75);
+// If you wish to watch the game play itself, set the value of cheaterFlag to true in the console. I've watched simon reach level 40 without him even breaking a sweat!
+var cheaterFlag = false;
 
 // Using the body-scroll-lock library to lock the canvas so that on iOS devices the game doesn't overscroll
 bodyScrollLock.disableBodyScroll(canvas);
