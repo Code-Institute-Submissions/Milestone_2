@@ -6,6 +6,7 @@
 /*global Synth*/
 // simon-game.js
 /*global startFlag:true*/
+/*global cheaterFlag:true*/
 /*global notes*/
 // simon-graphics.js
 /*global dialogue*/

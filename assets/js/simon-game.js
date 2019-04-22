@@ -82,6 +82,7 @@ manager.on('doubletap', function(e) {
 
 // Function activated when a keyboard button is pressed
 function keyDownHandler(e) {
+
   // If the Space button is pressed the game is restarted
   if (e.code === 'Space') {
     gameStart(1);
