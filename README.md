@@ -15,7 +15,7 @@ The original Simon can be broken into two modes of feedback, the visual and the 
  - As a player I would like visual feedback on my progress
  - As a player I would like some story elements with an air of intrigue
 
-Detail into how I addressed these user stories can be found below in the Features section [below](#features).
+Detail of how I addressed these user stories can be found below in the Features section [below](#features).
 
 ## Technologies Used
 
